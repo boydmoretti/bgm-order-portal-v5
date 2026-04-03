@@ -491,7 +491,7 @@ body{
 /* ===== CLOSED VIEW ===== */
 #view-closed{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:100vh;padding:40px 24px;text-align:center;
+  padding:60px 24px 40px;text-align:center;margin-top:var(--header-h);
 }
 .closed-icon{font-size:60px;margin-bottom:20px}
 .closed-title{
@@ -1031,6 +1031,7 @@ body{
       <input class="admin-input" id="adminGroupNum" type="number" placeholder="Group Order Number (e.g. 1)" min="1">
       <input class="admin-input" id="adminCloseDate" placeholder="Close date (e.g. April 5th)">
       <button class="save-btn" onclick="saveSettings()">💾 Save Settings</button>
+      <button class="save-btn" style="background:var(--success);margin-left:8px" onclick="forceOpen()">🔓 Force Open</button>
     </div>
 
     <!-- Markup Control -->
@@ -1838,6 +1839,25 @@ function checkPW() {
   }
 }
 
+async function forceOpen() {
+  try {
+    const res = await api('eml_settings?id=eq.1', {
+      method: 'PATCH',
+      body: JSON.stringify({ is_open: true })
+    });
+    if (res.ok) {
+      setPortalToggleUI(true);
+      settings.is_open = true;
+      alert('Portal forced OPEN! Refresh the main page to confirm.');
+    } else {
+      const err = await res.text();
+      alert('Error: ' + err);
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
 function adminLogout() {
   isAdminLoggedIn = false;
   document.getElementById('pwInput').value = '';
@@ -2050,12 +2070,16 @@ function copyAlisaSummary() {
 // ADMIN SETTINGS
 // ============================================================
 function togglePortal() {
-  const isOpen = settings.is_open !== false;
-  settings.is_open = !isOpen;
+  // Read current visual state, not settings object
+  const currentlyOpen = document.getElementById('portalToggle').classList.contains('on');
+  setPortalToggleUI(!currentlyOpen);
+}
+
+function setPortalToggleUI(isOpen) {
   const toggle = document.getElementById('portalToggle');
   const dot = document.getElementById('portalDot');
   const txt = document.getElementById('portalStatusText');
-  if (settings.is_open) {
+  if (isOpen) {
     toggle.className = 'toggle-switch on';
     dot.className = 'status-dot';
     txt.textContent = 'OPEN';
@@ -2073,10 +2097,12 @@ async function saveSettings() {
   settings.close_message = closeDate;
 
   try {
+    // Read open/close state from the actual toggle button UI - source of truth
+    const isOpenNow = document.getElementById('portalToggle').classList.contains('on');
     const res = await api('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({
-        is_open: settings.is_open === true,
+        is_open: isOpenNow,
         close_message: closeDate,
         group_order_number: gNum
       })
