@@ -491,13 +491,13 @@ body{
 /* ===== CLOSED VIEW ===== */
 #view-closed{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:60px 24px 40px;text-align:center;margin-top:var(--header-h);
+  padding:30px 24px 30px;text-align:center;margin-top:var(--header-h);
 }
-.closed-icon{font-size:60px;margin-bottom:20px}
+.closed-icon{font-size:40px;margin-bottom:12px}
 .closed-title{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:32px;font-weight:800;
-  color:var(--text);margin-bottom:8px;
+  font-size:24px;font-weight:800;
+  color:var(--text);margin-bottom:6px;
 }
 .closed-msg{font-size:16px;color:var(--text-secondary);max-width:320px;line-height:1.5}
 
@@ -1488,6 +1488,13 @@ function api(path, opts={}) {
 // INIT
 // ============================================================
 async function init() {
+  // Always show shop immediately — no Supabase gate on page load
+  buildCatTabs();
+  renderProducts();
+  updateCart();
+  showView('shop');
+
+  // Load settings in background for markup, overrides, display info only
   try {
     const res = await api('eml_settings?id=eq.1');
     if (res.ok) {
@@ -1501,19 +1508,11 @@ async function init() {
         document.getElementById('headerSub').textContent = `2026 ALISA / SBF — GROUP ORDER #${gNum}`;
         document.getElementById('infoOrderNum').textContent = '#' + gNum;
         document.getElementById('infoCloseDate').textContent = closeDate || 'TBD';
-        if (settings.is_open === false) {
-          document.getElementById('header').style.display = 'none';
-          document.getElementById('closedMsg').textContent = closeDate ? 'Closes: ' + closeDate + '. Check back soon!' : 'The group order is currently closed. Check back soon!';
-          showView('closed');
-          return;
-        }
+        // Re-render with correct markup and product overrides
+        renderProducts();
       }
     }
   } catch(e) {}
-  buildCatTabs();
-  renderProducts();
-  updateCart();
-  showView('shop');
 }
 
 // ============================================================
