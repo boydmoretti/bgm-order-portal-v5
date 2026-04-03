@@ -126,7 +126,7 @@ body{
   margin-top:var(--header-h);
   background:var(--bg-elevated);
   border-bottom:1px solid var(--border);
-  padding:10px 16px;
+  padding:6px 16px;
   display:flex;align-items:center;justify-content:space-between;
   font-family:'Barlow Condensed',sans-serif;
 }
@@ -136,7 +136,7 @@ body{
 .info-close strong{color:var(--warning)}
 
 /* ===== SEARCH ===== */
-#searchWrap{padding:12px 14px 8px;background:var(--bg)}
+#searchWrap{padding:8px 14px 6px;background:var(--bg)}
 #searchInput{
   width:100%;
   background:var(--bg-input);
@@ -159,7 +159,7 @@ body{
 #catTabs{
   display:flex;
   overflow-x:auto;
-  padding:8px 14px;
+  padding:5px 14px;
   gap:8px;
   scrollbar-width:none;
   background:var(--bg);
@@ -189,7 +189,7 @@ body{
 
 /* ===== PRODUCTS LIST ===== */
 #productList{
-  padding:10px 14px 100px;
+  padding:6px 14px 100px;
 }
 .cat-header{
   display:flex;align-items:center;gap:10px;
@@ -1500,7 +1500,7 @@ async function init() {
         document.getElementById('headerSub').textContent = `2026 ALISA / SBF — GROUP ORDER #${gNum}`;
         document.getElementById('infoOrderNum').textContent = '#' + gNum;
         document.getElementById('infoCloseDate').textContent = closeDate || 'TBD';
-        if (!settings.is_open) {
+        if (settings.is_open === false) {
           document.getElementById('header').style.display = 'none';
           document.getElementById('closedMsg').textContent = closeDate ? 'Closes: ' + closeDate + '. Check back soon!' : 'The group order is currently closed. Check back soon!';
           showView('closed');
@@ -2076,7 +2076,7 @@ async function saveSettings() {
     const res = await api('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({
-        is_open: settings.is_open !== false,
+        is_open: settings.is_open === true,
         close_message: closeDate,
         group_order_number: gNum
       })
