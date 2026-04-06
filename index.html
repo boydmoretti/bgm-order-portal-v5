@@ -2026,4 +2026,191 @@ function printOrder(order) {
   <div class="item"><span>Shipping</span><span>${fmt(SHIPPING)}</span></div>
   <div class="total"><span>TOTAL DUE</span><span>${fmt(order.customer_total||0)}</span></div>
   <br><p style="font-size:11px;color:#666">For Research Purposes Only</p>
-  </body></html>
+  </body></html>`);
+  w.document.close();
+  w.print();
+}
+
+function renderAlisaSummary() {
+  const totals = {};
+  orders.forEach(o => {
+    const items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []);
+    items.forEach(it => {
+      if (!totals[it.sku]) totals[it.sku] = {name: it.name, qty: 0, basePrice: it.basePrice, total: 0};
+      totals[it.sku].qty += it.qty;
+      totals[it.sku].total += it.baseLine;
+    });
+  });
+
+  const rows = Object.entries(totals).sort((a,b)=>a[0].localeCompare(b[0]));
+  const grand = rows.reduce((s,[,v])=>s+v.total,0);
+
+  document.getElementById('alisaSummaryRows').innerHTML = rows.map(([sku,v]) =>
+    `<div class="alisa-row">
+      <span class="alisa-sku">${sku}</span>
+      <span class="alisa-qty">= ${v.qty} box</span>
+      <span class="alisa-price">$${v.basePrice}</span>
+      <span class="alisa-total">$${v.total}</span>
+    </div>`
+  ).join('');
+  document.getElementById('alisaGrandTotal').textContent = fmt(grand);
+}
+
+function copyAlisaSummary() {
+  const totals = {};
+  orders.forEach(o => {
+    const items = typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []);
+    items.forEach(it => {
+      if (!totals[it.sku]) totals[it.sku] = {qty:0, basePrice: it.basePrice, total:0};
+      totals[it.sku].qty += it.qty;
+      totals[it.sku].total += it.baseLine;
+    });
+  });
+  const rows = Object.entries(totals).sort((a,b)=>a[0].localeCompare(b[0]));
+  const grand = rows.reduce((s,[,v])=>s+v.total,0);
+  const lines = [
+    `ORDER — ${new Date().toLocaleDateString()}`,
+    '',
+    ...rows.map(([sku,v]) => `${sku.padEnd(8)} = ${String(v.qty).padStart(2)} box   $${v.basePrice}   $${v.total}`),
+    '',
+    `GRAND TOTAL:  $${grand}`
+  ].join('\n');
+  navigator.clipboard.writeText(lines).then(() => alert('Alisa Summary Copied!'));
+}
+
+// ============================================================
+// ADMIN SETTINGS
+// ============================================================
+function togglePortal() {
+  // Read current visual state, not settings object
+  const currentlyOpen = document.getElementById('portalToggle').classList.contains('on');
+  setPortalToggleUI(!currentlyOpen);
+}
+
+function setPortalToggleUI(isOpen) {
+  const toggle = document.getElementById('portalToggle');
+  const dot = document.getElementById('portalDot');
+  const txt = document.getElementById('portalStatusText');
+  if (isOpen) {
+    toggle.className = 'toggle-switch on';
+    dot.className = 'status-dot';
+    txt.textContent = 'OPEN';
+  } else {
+    toggle.className = 'toggle-switch';
+    dot.className = 'status-dot closed';
+    txt.textContent = 'CLOSED';
+  }
+}
+
+async function saveSettings() {
+  const gNum = parseInt(document.getElementById('adminGroupNum').value) || 1;
+  const closeDate = document.getElementById('adminCloseDate').value.trim();
+  settings.group_order_number = gNum;
+  settings.close_message = closeDate;
+
+  try {
+    // Read open/close state from the actual toggle button UI - source of truth
+    const isOpenNow = document.getElementById('portalToggle').classList.contains('on');
+    const res = await api('eml_settings?id=eq.1', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        is_open: isOpenNow,
+        close_message: closeDate,
+        group_order_number: gNum
+      })
+    });
+    if (res.ok) {
+      document.getElementById('adminSub').textContent = 'GROUP ORDER #' + gNum;
+      document.getElementById('headerSub').textContent = `2026 ALISA / SBF — GROUP ORDER #${gNum}`;
+      document.getElementById('infoOrderNum').textContent = '#' + gNum;
+      document.getElementById('infoCloseDate').textContent = closeDate || 'TBD';
+      alert('Settings saved!');
+    } else throw new Error('Failed');
+  } catch(e) {
+    alert('Error saving settings: ' + e.message);
+  }
+}
+
+function updateMarkupPreview() {
+  const pct = parseFloat(document.getElementById('markupInput').value) || 0;
+  const example = Math.round(50 * (1 + pct/100));
+  document.getElementById('markupPreview').textContent = 
+    `At ${pct}% — a $50 item shows as $${example} to customers.`;
+}
+
+async function saveMarkup() {
+  const pct = parseFloat(document.getElementById('markupInput').value) || 0;
+  try {
+    const res = await api('eml_settings?id=eq.1', {
+      method: 'PATCH',
+      body: JSON.stringify({markup_percentage: pct})
+    });
+    if (res.ok) {
+      markup = pct;
+      renderProducts();
+      alert(`Markup set to ${pct}%. All prices updated!`);
+    } else throw new Error('Failed');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// ============================================================
+// ADMIN PRODUCT OVERRIDES
+// ============================================================
+function renderAdminProducts() {
+  const search = document.getElementById('prodSearch').value.toLowerCase().trim();
+  let filtered = PRODUCTS;
+  if (search) filtered = filtered.filter(p =>
+    p.name.toLowerCase().includes(search) ||
+    p.sku.toLowerCase().includes(search)
+  );
+
+  const container = document.getElementById('adminProductList');
+  container.innerHTML = filtered.map(p => {
+    const ov = productOverrides[p.sku] || {};
+    return `<div class="prod-admin-row">
+      <span class="prod-admin-sku">${p.sku}</span>
+      <span class="prod-admin-name">${p.name}</span>
+      <div class="toggle-mini">
+        <button class="toggle-mini-btn oos-btn ${ov.isOOS ? 'on' : ''}" onclick="toggleProdOOS('${p.sku}')">OOS</button>
+        <button class="toggle-mini-btn na-btn ${ov.isNA ? 'on' : ''}" onclick="toggleProdNA('${p.sku}')">N/A</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleProdOOS(sku) {
+  if (!productOverrides[sku]) productOverrides[sku] = {};
+  productOverrides[sku].isOOS = !productOverrides[sku].isOOS;
+  renderAdminProducts();
+}
+
+function toggleProdNA(sku) {
+  if (!productOverrides[sku]) productOverrides[sku] = {};
+  productOverrides[sku].isNA = !productOverrides[sku].isNA;
+  renderAdminProducts();
+}
+
+async function saveProductOverrides() {
+  try {
+    const res = await api('eml_settings?id=eq.1', {
+      method: 'PATCH',
+      body: JSON.stringify({product_overrides: productOverrides})
+    });
+    if (res.ok) {
+      renderProducts();
+      alert('Product status saved!');
+    } else throw new Error('Failed');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>
