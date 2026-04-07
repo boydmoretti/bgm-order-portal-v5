@@ -1708,8 +1708,6 @@ function goToCheckout() {
   document.getElementById('checkoutItems').innerHTML = itemsHtml;
   document.getElementById('coSubtotal').textContent = fmt(customerTotal);
   document.getElementById('coTotal').textContent = fmt(total);
-  document.getElementById('venmoAmount').textContent = fmt(total) + ' due';
-  document.getElementById('venmoBreakdown').textContent = fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
 
   showView('checkout');
 }
