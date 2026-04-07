@@ -1536,9 +1536,9 @@ function showView(v) {
   const el = document.getElementById('view-' + v);
   if (el) el.classList.add('active');
   const header = document.getElementById('header');
-  if (v === 'shop') {
+  if (v === 'shop' || v === 'closed') {
     header.style.display = 'flex';
-    document.getElementById('bottomBar').style.display = 'flex';
+    document.getElementById('bottomBar').style.display = v === 'shop' ? 'flex' : 'none';
   } else {
     header.style.display = 'none';
     document.getElementById('bottomBar').style.display = 'none';
