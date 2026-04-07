@@ -881,9 +881,11 @@ body{
 <div id="successOverlay">
   <div class="success-icon">✅</div>
   <div class="success-title">Order Submitted!</div>
-  <div class="success-msg" id="successMsg">Your order has been received. Pay via Venmo and send your screenshot to Boyd on WhatsApp.</div>
+  <div class="success-msg" id="successMsg">Your order has been received. Pay via Venmo below and send your payment screenshot to Boyd on WhatsApp.</div>
   <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:16px 0;text-align:center;width:100%;max-width:320px;">
-    <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:6px;">💳 Pay via Venmo Now</div>
+    <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💳 Pay via Venmo Now</div>
+    <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
+    <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
     <a href="https://venmo.com/Boyd-Moretti" target="_blank" style="font-size:22px;font-weight:700;color:#008069;letter-spacing:.5px;text-decoration:none;display:block;margin:6px 0;">@Boyd-Moretti 👆 Tap to Pay</a>
     <div style="font-size:12px;color:#64748b;margin-top:6px;">Venmo note: <strong>"Reimbursement"</strong></div>
   </div>
@@ -997,15 +999,7 @@ body{
       </select>
       <input class="form-input" id="fConnectionOther" placeholder="Type name here if not listed above" style="margin-top:8px">
     </div>
-    <!-- Venmo -->
-    <div class="venmo-card">
-      <div class="venmo-label">💳 Pay via Venmo After Submitting</div>
-      <a class="venmo-handle" href="https://venmo.com/Boyd-Moretti" target="_blank">@Boyd-Moretti 👆 Tap to Pay</a>
-      <div class="venmo-amount" id="venmoAmount">$0.00 due</div>
-      <div class="venmo-breakdown" id="venmoBreakdown"></div>
-    </div>
-    <div class="venmo-note">⚠️ Venmo note should say: <strong>"Reimbursement"</strong></div>
-    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:10px;padding:14px 16px;margin:16px 0 12px;font-size:12px;color:#a8c8a8;line-height:1.6;">
+    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:10px;padding:14px 16px;margin:0 0 14px;font-size:12px;color:#a8c8a8;line-height:1.6;">
       <div style="font-weight:700;color:#6dbf6d;margin-bottom:6px;">📦 Shipping & Order Policy</div>
       <div>✅ <strong style="color:#d0e8d0;">Free reship guaranteed</strong> if our package is seized or flagged by customs — one time per order, no questions asked.</div>
       <div style="margin-top:5px;">⚠️ <strong style="color:#d0e8d0;">Order at your own risk.</strong> All products are for research purposes only. By submitting you acknowledge you understand and accept all risks associated with your order.</div>
@@ -1793,9 +1787,11 @@ async function submitOrder() {
     document.getElementById('fConnectionOther').value = '';
 
     // Show success
-    let msg = 'Your order has been received. Pay via Venmo @Boyd-Moretti and send your payment screenshot to Boyd on WhatsApp.';
-    if (isRepeat) msg = '✅ Order received! Note: Shipping removed — already paid on a previous order. Pay via Venmo @Boyd-Moretti.';
+    let msg = 'Your order has been received. Pay via Venmo below and send your payment screenshot to Boyd on WhatsApp.';
+    if (isRepeat) msg = '✅ Order received! Note: Shipping removed — already paid on a previous order. Pay via Venmo below.';
     document.getElementById('successMsg').textContent = msg;
+    document.getElementById('successTotal').textContent = fmt(total) + ' due';
+    document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
     document.getElementById('successOverlay').classList.add('show');
 
   } catch(e) {
