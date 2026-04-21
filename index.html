@@ -4274,15 +4274,17 @@ function renderOrders() {
         <span class="margin-pill margin">Margin: ${fmt(margin)}</span>
       </div>
       <div class="order-btns">
-        <button class="order-btn customer" onclick='copyForCustomer(${JSON.stringify(o)})'>📋 Copy for Customer</button>
-        <button class="order-btn alisa" onclick='copyForAlisa(${JSON.stringify(o)})'>📋 Copy for Alisa</button>
-        <button class="order-btn print" onclick='printOrder(${JSON.stringify(o)})'>🖨️ Print</button>
+        <button class="order-btn customer" onclick='copyForCustomer(${orders.indexOf(o)})'>📋 Copy for Customer</button>
+        <button class="order-btn alisa" onclick='copyForAlisa(${orders.indexOf(o)})'>📋 Copy for Alisa</button>
+        <button class="order-btn print" onclick='printOrder(${orders.indexOf(o)})'>🖨️ Print</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function copyForCustomer(order) {
+function copyForCustomer(idx) {
+  const order = typeof idx === 'number' ? orders[idx] : idx;
+  if (!order) return;
   const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
   const lines = [
     `${order.name} — ${order.date}`,
@@ -4301,7 +4303,9 @@ function copyForCustomer(order) {
   navigator.clipboard.writeText(lines).then(() => alert('Copied for Customer!'));
 }
 
-function copyForAlisa(order) {
+function copyForAlisa(idx) {
+  const order = typeof idx === 'number' ? orders[idx] : idx;
+  if (!order) return;
   const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
   const lines = [
     `ORDER — ${new Date().toLocaleDateString()}`,
@@ -4313,7 +4317,9 @@ function copyForAlisa(order) {
   navigator.clipboard.writeText(lines).then(() => alert('Copied for Alisa!'));
 }
 
-function printOrder(order) {
+function printOrder(idx) {
+  const order = typeof idx === 'number' ? orders[idx] : idx;
+  if (!order) { alert('Order not found.'); return; }
   const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
   const div = document.getElementById('_printContent');
   div.innerHTML = `
@@ -4329,7 +4335,7 @@ function printOrder(order) {
     <div class="pi"><span>Shipping</span><span>${fmt(SHIPPING)}</span></div>
     <div class="pt"><span>TOTAL DUE</span><span>${fmt(order.customer_total||0)}</span></div>
     <p class="pf">For Research Purposes Only</p>`;
-  window.print();
+  setTimeout(function(){ window.print(); }, 250);
 }
 
 function renderAlisaSummary() {
