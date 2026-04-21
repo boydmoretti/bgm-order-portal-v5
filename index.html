@@ -855,13 +855,14 @@ body{
     <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC Payment</div>
     <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
     <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
-    <div id="qrBox" style="background:#fff;padding:10px;border-radius:8px;display:inline-block;margin:8px 0;"></div>
-    <div style="font-size:12px;color:#64748b;margin-top:4px;font-weight:600;">Network: Ethereum (ERC-20)</div>
-    <div id="addrBox" style="font-family:monospace;font-size:11px;background:#f1f5f9;border:1px solid #cbd5e1;border-radius:6px;padding:8px;margin:8px 0;word-break:break-all;color:#0f172a;"></div>
-    <button onclick="copyCryptoAddr()" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px;">📋 Copy Wallet Address</button>
+    <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Network: Ethereum (ERC-20) — Send to this address:</div>
+    <div id="addrBox" style="font-family:monospace;font-size:13px;font-weight:700;background:#f1f5f9;border:2px solid #22c55e;border-radius:8px;padding:12px;margin:8px 0;word-break:break-all;color:#0f172a;letter-spacing:0.02em;line-height:1.6;"></div>
+    <button onclick="copyCryptoAddr()" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:15px;width:100%;margin-top:4px;">📋 Copy Wallet Address</button>
   </div>
-  <div style="background:#fefce8;border:1px solid #eab308;border-radius:8px;padding:12px;margin:8px 0;width:100%;max-width:340px;text-align:left;">
-    <div style="font-size:12px;color:#713f12;line-height:1.5;"><strong>After sending:</strong> Screenshot or copy the transaction hash (TX ID) from your wallet and DM it to Boyd on WhatsApp to confirm payment.</div>
+  <div id="qrBox" style="display:none;"></div>
+  <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:8px 0;width:100%;max-width:340px;text-align:left;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER SENDING:</div>
+    <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Screenshot or copy the <strong style="color:#fff;">Transaction Hash (TX ID)</strong> from your wallet and DM it to Boyd on WhatsApp to confirm your payment.</div>
   </div>
   <button class="success-close" onclick="closeSuccess()">Done</button>
 </div>
@@ -4086,9 +4087,6 @@ async function submitOrder() {
     document.getElementById('successBreakdown').textContent = isRepeat
       ? fmt(customerTotal) + ' products + $0.00 shipping (repeat customer)'
       : fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
-    var qrBox = document.getElementById('qrBox');
-    qrBox.innerHTML = '';
-    qrBox.appendChild(drawQR('ethereum:' + CRYPTO_ADDRESS, 200));
     document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
     document.getElementById('successOverlay').classList.add('show');
 
