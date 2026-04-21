@@ -978,9 +978,10 @@ body{
       <div>✅ <strong style="color:#d0e8d0;">Free reship guaranteed</strong> if our package is seized or flagged by customs — one time per order, no questions asked.</div>
       <div style="margin-top:5px;">⚠️ <strong style="color:#d0e8d0;">Order at your own risk.</strong> All products are for research purposes only. By submitting you acknowledge you understand and accept all risks associated with your order.</div>
     </div>
-    <div style="background:#1e1a0a;border:1px solid #eab308;border-radius:10px;padding:14px 16px;margin:0 0 14px;font-size:12px;color:#fde68a;line-height:1.6;">
-      <div style="font-weight:700;color:#eab308;margin-bottom:6px;">💰 Payment: USDC (Ethereum ERC-20) Only</div>
-      <div>After submitting your order, you'll see a QR code and wallet address to send USDC on the Ethereum network. <strong style="color:#fef3c7;">USDC on ERC-20 ONLY</strong> — any other network and funds will be lost.</div>
+    <div style="background:#1a0000;border:3px solid #dc2626;border-radius:12px;padding:18px 16px;margin:0 0 16px;text-align:center;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#ff2222;letter-spacing:0.04em;margin-bottom:8px;">🚨 PAYMENT WARNING 🚨</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#ffffff;margin-bottom:8px;">USDC — ETHEREUM (ERC-20) NETWORK ONLY</div>
+      <div style="font-size:13px;color:#fca5a5;line-height:1.6;"><strong style="color:#fff;">DO NOT</strong> send on Coinbase Base, Polygon, Solana, BSC, or any other network.<br><strong style="color:#ff4444;">Wrong network = funds permanently lost.</strong> You must select Ethereum mainnet in your wallet before sending.</div>
     </div>
     <button class="submit-btn" id="submitBtn" onclick="submitOrder()">Submit Order →</button>
     <div class="research-footer">For Research Purposes Only</div>
@@ -4023,7 +4024,7 @@ async function submitOrder() {
   btn.textContent = 'Submitting...';
 
   const {kits, customerTotal, baseCost, margin} = getTotals();
-  const total = customerTotal + SHIPPING;
+  let total = customerTotal + SHIPPING;
 
   const items = Object.entries(cart).map(([sku, qty]) => {
     const p = PRODUCTS.find(x => x.sku === sku);
@@ -4044,6 +4045,9 @@ async function submitOrder() {
       if (repData && repData.length > 0) isRepeat = true;
     }
   } catch(e) {}
+
+  // Actually remove shipping for repeat customers
+  if (isRepeat) total = customerTotal;
 
   const orderData = {
     date: new Date().toLocaleString(),
@@ -4079,10 +4083,12 @@ async function submitOrder() {
     if (isRepeat) msg = '✅ Order saved! Note: Shipping removed — already paid on a previous order. Send USDC below and DM the TX hash to Boyd.';
     document.getElementById('successMsg').textContent = msg;
     document.getElementById('successTotal').textContent = 'Send ' + total.toFixed(2) + ' USDC';
-    document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
+    document.getElementById('successBreakdown').textContent = isRepeat
+      ? fmt(customerTotal) + ' products + $0.00 shipping (repeat customer)'
+      : fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
     var qrBox = document.getElementById('qrBox');
     qrBox.innerHTML = '';
-    qrBox.appendChild(drawQR(CRYPTO_ADDRESS, 200));
+    qrBox.appendChild(drawQR('ethereum:' + CRYPTO_ADDRESS, 200));
     document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
     document.getElementById('successOverlay').classList.add('show');
 
@@ -4291,8 +4297,7 @@ function copyForAlisa(order) {
 
 function printOrder(order) {
   const items = typeof order.items === 'string' ? JSON.parse(order.items) : (order.items || []);
-  const w = window.open('','_blank');
-  w.document.write(`<html><head><title>Order - ${order.name}</title>
+  const html = `<html><head><title>Order - ${order.name}</title>
   <style>body{font-family:monospace;padding:20px;color:#000;background:#fff}
   h2{margin-bottom:4px}p{margin:2px 0;font-size:14px}
   .item{border-bottom:1px solid #eee;padding:4px 0;display:flex;justify-content:space-between}
@@ -4310,9 +4315,19 @@ function printOrder(order) {
   <div class="item"><span>Shipping</span><span>${fmt(SHIPPING)}</span></div>
   <div class="total"><span>TOTAL DUE</span><span>${fmt(order.customer_total||0)}</span></div>
   <br><p style="font-size:11px;color:#666">For Research Purposes Only</p>
-  </body></html>`);
-  w.document.close();
-  w.print();
+  </body></html>`;
+  // Use hidden iframe to trigger native OS print dialog in all browsers
+  let iframe = document.getElementById('_printFrame');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = '_printFrame';
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:800px;height:600px;border:none;';
+    document.body.appendChild(iframe);
+  }
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 300);
 }
 
 function renderAlisaSummary() {
