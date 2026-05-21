@@ -858,6 +858,37 @@ body{
 #_printContent .pi{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:13px}
 #_printContent .pt{display:flex;justify-content:space-between;padding:10px 0 0;font-size:16px;font-weight:bold;border-top:2px solid #000;margin-top:6px}
 #_printContent .pf{margin-top:16px;font-size:11px;color:#666;font-style:italic}
+
+/* ===== PRE-CHECKOUT ACKNOWLEDGMENT ===== */
+#view-ack{display:none;min-height:100vh;background:linear-gradient(160deg,#1a0033 0%,#0a0118 55%,#001a1a 100%);padding:0;}
+#view-ack.active{display:block}
+.ack-wrap{max-width:560px;margin:0 auto;padding:32px 22px 40px;}
+.ack-badge{display:inline-block;background:linear-gradient(90deg,#c8102e,#7c3aed);color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:18px;}
+.ack-h1{font-family:'Barlow Condensed',sans-serif;font-size:34px;font-weight:800;line-height:1.05;color:#fff;margin-bottom:8px;letter-spacing:0.01em;}
+.ack-h1 .glow{background:linear-gradient(90deg,#fbbf24,#f472b6,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+.ack-sub{font-family:'Barlow',sans-serif;font-size:15px;color:#c4b5fd;margin-bottom:26px;line-height:1.5;}
+.ack-card{background:rgba(255,255,255,0.04);border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:18px 18px;margin-bottom:14px;backdrop-filter:blur(4px);}
+.ack-card.warn{border-color:rgba(245,158,11,0.5);background:rgba(245,158,11,0.07);}
+.ack-card.pay{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.06);}
+.ack-card.risk{border-color:rgba(200,16,46,0.45);background:rgba(200,16,46,0.07);}
+.ack-icon{font-size:26px;margin-bottom:6px;display:block;}
+.ack-ct{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:6px;letter-spacing:0.02em;}
+.ack-cb{font-family:'Barlow',sans-serif;font-size:14px;color:#d8d4e8;line-height:1.55;}
+.ack-cb strong{color:#fff;}
+.ack-cb .hot{color:#fbbf24;font-weight:600;}
+.ack-pay-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-family:'Barlow',sans-serif;font-size:14px;color:#e9d5ff;}
+.ack-pay-line:last-child{border-bottom:none;}
+.ack-pay-line .tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;}
+.ack-pay-line .tag.free{color:#34d399;}
+.ack-pay-line .tag.fee{color:#fbbf24;}
+.ack-checkrow{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.06);border:2px solid rgba(167,139,250,0.4);border-radius:12px;padding:16px;margin:22px 0 16px;cursor:pointer;transition:all 0.2s;}
+.ack-checkrow.checked{border-color:#34d399;background:rgba(16,185,129,0.12);}
+.ack-checkbox{width:26px;height:26px;border-radius:6px;border:2px solid #a78bfa;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;transition:all 0.15s;margin-top:1px;}
+.ack-checkrow.checked .ack-checkbox{background:#10b981;border-color:#10b981;}
+.ack-checktext{font-family:'Barlow',sans-serif;font-size:15px;color:#fff;font-weight:500;line-height:1.4;}
+.ack-continue{width:100%;background:linear-gradient(90deg,#c8102e,#7c3aed);color:#fff;border:none;border-radius:12px;padding:17px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:0.04em;cursor:pointer;transition:all 0.2s;opacity:0.45;pointer-events:none;}
+.ack-continue.ready{opacity:1;pointer-events:auto;box-shadow:0 6px 24px rgba(124,58,237,0.4);}
+.ack-continue.ready:active{transform:scale(0.98);}
 </style>
 </head>
 <body>
@@ -872,7 +903,8 @@ body{
     <div style="font-size:14px;color:#991b1b;font-weight:700;line-height:1.4;">⚠️ SEND USDC ON ETHEREUM (ERC-20) ONLY</div>
     <div style="font-size:12px;color:#991b1b;font-weight:500;margin-top:6px;line-height:1.4;">Do NOT send on Polygon, BSC, Arbitrum, Solana, or any other network. Your funds will be PERMANENTLY LOST and cannot be recovered.</div>
   </div>
-  <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:12px 0;text-align:center;width:100%;max-width:340px;">
+  <div id="usdcPayBox" style="width:100%;max-width:340px;">
+  <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:12px 0;text-align:center;width:100%;">
     <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC Payment</div>
     <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
     <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
@@ -884,6 +916,19 @@ body{
   <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:8px 0;width:100%;max-width:340px;text-align:left;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER SENDING:</div>
     <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Screenshot or copy the <strong style="color:#fff;">Transaction Hash (TX ID)</strong> from your wallet and DM it to Boyd on WhatsApp to confirm your payment.</div>
+  </div>
+  </div>
+  <div id="venmoPayBox" style="display:none;width:100%;max-width:340px;">
+    <div style="background:#f0f7ff;border:2px solid #3b82f6;border-radius:12px;padding:18px 16px;margin:12px 0;text-align:center;">
+      <div style="font-size:13px;color:#1e40af;font-weight:600;margin-bottom:6px;">💸 Pay with Venmo</div>
+      <a id="venmoPayLink" href="#" target="_blank" style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:#008CFF;text-decoration:none;margin:8px 0;">@Boyd-Moretti 👆</a>
+      <div style="font-size:13px;color:#475569;margin-bottom:4px;">Tap above to open Venmo and pay <strong id="venmoAmtLabel" style="color:#1e40af;"></strong></div>
+      <div style="font-size:12px;color:#64748b;margin-top:8px;">Note to add: <strong>Reimbursement</strong></div>
+    </div>
+    <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:8px 0;text-align:left;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER PAYING:</div>
+      <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Send a <strong style="color:#fff;">payment screenshot</strong> to Boyd on WhatsApp to confirm your order.</div>
+    </div>
   </div>
   <button class="success-close" onclick="closeSuccess()">Done</button>
 </div>
@@ -907,7 +952,7 @@ body{
   </div>
   <img src="data:image/jpeg;base64,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" class="header-logo" alt="BgM Logo">
   <div class="header-right">
-    <button id="cartBubble" class="empty" onclick="goToCheckout()">🛒 0 kits</button>
+    <button id="cartBubble" class="empty" onclick="goToAck()">🛒 0 kits</button>
     <button id="adminGearBtn" onclick="openAdmin()">⚙️</button>
   </div>
 </div>
@@ -939,7 +984,49 @@ body{
       <div class="bottom-total" id="bottomTotal">$0.00</div>
       <div class="bottom-sub" id="bottomSub">Add items to your cart</div>
     </div>
-    <button id="checkoutBtn" disabled onclick="goToCheckout()">Checkout →</button>
+    <button id="checkoutBtn" disabled onclick="goToAck()">Checkout →</button>
+  </div>
+</div>
+
+<!-- VIEW: ACKNOWLEDGMENT -->
+<div id="view-ack" class="view">
+  <div class="ack-wrap">
+    <div class="ack-badge">⚡ Read Before You Order ⚡</div>
+    <div class="ack-h1">This isn't <span class="glow">Amazon.</span></div>
+    <div class="ack-sub">A few important things you must understand before placing your group order. Please read carefully.</div>
+
+    <div class="ack-card warn">
+      <span class="ack-icon">⏳</span>
+      <div class="ack-ct">Shipping Takes 8–10 Weeks</div>
+      <div class="ack-cb">These ship from overseas. Expect <strong>8 to 10 weeks minimum</strong> — sometimes <span class="hot">longer</span> if held at customs or if a package needs to be reshipped. This is normal. Order now for what you'll need months out.</div>
+    </div>
+
+    <div class="ack-card">
+      <span class="ack-icon">📦</span>
+      <div class="ack-ct">Free Reship Guarantee</div>
+      <div class="ack-cb">If a package is seized or flagged at customs, you get <strong>one free reship</strong>, no questions asked. Note this adds more time to delivery.</div>
+    </div>
+
+    <div class="ack-card pay">
+      <span class="ack-icon">💳</span>
+      <div class="ack-ct">Payment Options</div>
+      <div class="ack-pay-line"><span>USDC Crypto</span><span class="tag free">NO FEE ✓</span></div>
+      <div class="ack-pay-line"><span>Venmo</span><span class="tag fee">+<span id="ackVenmoPct">10</span>% FEE</span></div>
+      <div class="ack-cb" style="margin-top:10px;">Crypto is preferred and free. Venmo adds a <span class="hot">convenience fee</span> because of the extra manual work and time required to convert and forward your payment.</div>
+    </div>
+
+    <div class="ack-card risk">
+      <span class="ack-icon">🔬</span>
+      <div class="ack-ct">For Research Purposes Only</div>
+      <div class="ack-cb">All products are sold strictly <strong>for research purposes only</strong>. By continuing, you accept all responsibility and risk associated with your order.</div>
+    </div>
+
+    <div class="ack-checkrow" id="ackCheckRow" onclick="toggleAck()">
+      <div class="ack-checkbox" id="ackCheckbox"></div>
+      <div class="ack-checktext">I acknowledge and understand everything above.</div>
+    </div>
+
+    <button class="ack-continue" id="ackContinueBtn" onclick="ackContinue()">Continue to Checkout →</button>
   </div>
 </div>
 
@@ -958,7 +1045,8 @@ body{
       <div class="section-title">📋 Your Order</div>
       <div id="checkoutItems"></div>
       <div class="order-subtotal"><span>Subtotal</span><span id="coSubtotal"></span></div>
-      <div class="order-subtotal"><span>Shipping & Customs (flat fee)</span><span>$25.00</span></div>
+      <div class="order-subtotal"><span>Shipping & Customs (flat fee)</span><span id="coShip">$25.00</span></div>
+      <div class="order-subtotal" id="coVenmoRow" style="display:none;color:#fbbf24;"><span>Venmo Fee (+<span class="venmoPctLbl">10</span>%)</span><span id="coVenmoFee"></span></div>
       <div class="order-total-row"><span>Total Due</span><span id="coTotal"></span></div>
     </div>
     <!-- Your Info -->
@@ -1000,7 +1088,17 @@ body{
       <div>✅ <strong style="color:#d0e8d0;">Free reship guaranteed</strong> if our package is seized or flagged by customs — one time per order, no questions asked.</div>
       <div style="margin-top:5px;">⚠️ <strong style="color:#d0e8d0;">Order at your own risk.</strong> All products are for research purposes only. By submitting you acknowledge you understand and accept all risks associated with your order.</div>
     </div>
-    <div style="background:#1a0000;border:3px solid #dc2626;border-radius:12px;padding:18px 16px;margin:0 0 16px;text-align:center;">
+    <!-- Payment Method -->
+    <div class="section-card" style="border-color:#7c3aed;">
+      <div class="section-title">💳 Payment Method *</div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" id="btnUsdc" onclick="selectPayment('usdc')" style="flex:1;padding:14px 8px;border-radius:10px;border:2px solid #10b981;background:rgba(16,185,129,0.15);color:#10b981;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer;line-height:1.2;">✅ USDC<br><span style="font-size:11px;font-weight:500;">No extra fee</span></button>
+        <button type="button" id="btnVenmo" onclick="selectPayment('venmo')" style="flex:1;padding:14px 8px;border-radius:10px;border:2px solid #1a2840;background:transparent;color:#8fa3bb;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer;line-height:1.2;">💸 Venmo<br><span style="font-size:11px;font-weight:500;">+<span class="venmoPctLbl">10</span>% fee</span></button>
+      </div>
+      <div id="venmoFeeNote" style="display:none;margin-top:10px;background:#1a0a00;border:1px solid #f59e0b;border-radius:8px;padding:10px 12px;font-size:12px;color:#fcd34d;line-height:1.5;">⚠️ Venmo includes a <strong>+<span class="venmoPctLbl">10</span>% convenience fee</strong> for the manual crypto conversion work. The total below reflects this.</div>
+    </div>
+    <!-- USDC WARNING -->
+    <div id="usdcWarnBox" style="background:#1a0000;border:3px solid #dc2626;border-radius:12px;padding:18px 16px;margin:0 0 16px;text-align:center;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#ff2222;letter-spacing:0.04em;margin-bottom:8px;">🚨 PAYMENT WARNING 🚨</div>
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#ffffff;margin-bottom:8px;">USDC — ETHEREUM (ERC-20) NETWORK ONLY</div>
       <div style="font-size:13px;color:#fca5a5;line-height:1.6;"><strong style="color:#fff;">DO NOT</strong> send on Coinbase Base, Polygon, Solana, BSC, or any other network.<br><strong style="color:#ff4444;">Wrong network = funds permanently lost.</strong> You must select Ethereum mainnet in your wallet before sending.</div>
@@ -1045,6 +1143,17 @@ body{
         <button class="save-btn" onclick="saveMarkup()">Apply</button>
       </div>
       <div class="markup-preview" id="markupPreview">At 0% — customers see Alisa's base prices.</div>
+    </div>
+
+    <!-- Venmo Surcharge Control -->
+    <div class="admin-section">
+      <div class="admin-section-title">💸 Venmo Surcharge</div>
+      <div class="markup-row">
+        <input class="markup-input admin-input" id="venmoSurchargeInput" type="number" min="0" max="100" placeholder="10" oninput="updateVenmoPreview()">
+        <span style="font-family:'Barlow Condensed';font-size:18px;font-weight:700;color:var(--text-secondary)">% fee</span>
+        <button class="save-btn" onclick="saveVenmoSurcharge()">Apply</button>
+      </div>
+      <div class="markup-preview" id="venmoPreview">Venmo orders add 10% on top of the full total.</div>
     </div>
 
     <!-- Orders / Alisa Summary Tabs -->
@@ -3778,6 +3887,8 @@ const PRODUCTS = [
 // ============================================================
 let cart = {};
 let markup = 0;
+let venmoSurcharge = 10;
+let selectedPayment = 'usdc';
 let settings = {};
 let productOverrides = {};
 let activeCat = 'all';
@@ -3823,6 +3934,7 @@ async function init() {
       if (data && data[0]) {
         settings = data[0];
         markup = settings.markup_percentage || 0;
+        venmoSurcharge = (settings.venmo_surcharge_pct != null) ? settings.venmo_surcharge_pct : 10;
         productOverrides = settings.product_overrides || {};
         const gNum = settings.group_order_number || 1;
         const closeDate = settings.close_message || '';
@@ -4005,6 +4117,83 @@ function updateCart() {
 // ============================================================
 // CHECKOUT
 // ============================================================
+let ackChecked = false;
+function goToAck() {
+  const {kits} = getTotals();
+  if (kits < MIN_KITS) return;
+  ackChecked = false;
+  document.getElementById('ackCheckRow').classList.remove('checked');
+  document.getElementById('ackCheckbox').textContent = '';
+  document.getElementById('ackContinueBtn').classList.remove('ready');
+  document.getElementById('ackVenmoPct').textContent = venmoSurcharge;
+  showView('ack');
+}
+function toggleAck() {
+  ackChecked = !ackChecked;
+  const row = document.getElementById('ackCheckRow');
+  const box = document.getElementById('ackCheckbox');
+  const btn = document.getElementById('ackContinueBtn');
+  if (ackChecked) {
+    row.classList.add('checked');
+    box.textContent = '✓';
+    btn.classList.add('ready');
+  } else {
+    row.classList.remove('checked');
+    box.textContent = '';
+    btn.classList.remove('ready');
+  }
+}
+function ackContinue() {
+  if (!ackChecked) return;
+  goToCheckout();
+}
+function selectPayment(method) {
+  selectedPayment = method;
+  const usdc = document.getElementById('btnUsdc');
+  const venmo = document.getElementById('btnVenmo');
+  const note = document.getElementById('venmoFeeNote');
+  const warn = document.getElementById('usdcWarnBox');
+  if (method === 'venmo') {
+    venmo.style.border = '2px solid #f59e0b';
+    venmo.style.background = 'rgba(245,158,11,0.15)';
+    venmo.style.color = '#fbbf24';
+    usdc.style.border = '2px solid #1a2840';
+    usdc.style.background = 'transparent';
+    usdc.style.color = '#8fa3bb';
+    note.style.display = 'block';
+    if (warn) warn.style.display = 'none';
+  } else {
+    usdc.style.border = '2px solid #10b981';
+    usdc.style.background = 'rgba(16,185,129,0.15)';
+    usdc.style.color = '#10b981';
+    venmo.style.border = '2px solid #1a2840';
+    venmo.style.background = 'transparent';
+    venmo.style.color = '#8fa3bb';
+    note.style.display = 'none';
+    if (warn) warn.style.display = 'block';
+  }
+  refreshCheckoutTotals();
+}
+function refreshCheckoutTotals() {
+  const {kits, customerTotal} = getTotals();
+  if (kits < MIN_KITS) return;
+  let total = customerTotal + SHIPPING;
+  let venmoFee = 0;
+  if (selectedPayment === 'venmo') {
+    venmoFee = Math.round(total * (venmoSurcharge/100) * 100) / 100;
+    total = total + venmoFee;
+  }
+  document.getElementById('coSubtotal').textContent = fmt(customerTotal);
+  const vRow = document.getElementById('coVenmoRow');
+  if (selectedPayment === 'venmo') {
+    vRow.style.display = 'flex';
+    document.getElementById('coVenmoFee').textContent = fmt(venmoFee);
+  } else {
+    vRow.style.display = 'none';
+  }
+  document.getElementById('coTotal').textContent = fmt(total);
+}
+
 function goToCheckout() {
   const {kits, customerTotal} = getTotals();
   if (kits < MIN_KITS) return;
@@ -4022,9 +4211,11 @@ function goToCheckout() {
   });
 
   document.getElementById('checkoutItems').innerHTML = itemsHtml;
-  document.getElementById('coSubtotal').textContent = fmt(customerTotal);
-  document.getElementById('coTotal').textContent = fmt(total);
-
+  // sync venmo % labels everywhere
+  document.querySelectorAll('.venmoPctLbl').forEach(el => el.textContent = venmoSurcharge);
+  // default to USDC each time checkout opens
+  selectedPayment = 'usdc';
+  selectPayment('usdc');
   showView('checkout');
 }
 
@@ -4071,6 +4262,13 @@ async function submitOrder() {
   // Actually remove shipping for repeat customers
   if (isRepeat) total = customerTotal;
 
+  // Venmo surcharge — always applies if Venmo selected, baked into total
+  let venmoFee = 0;
+  if (selectedPayment === 'venmo') {
+    venmoFee = Math.round(total * (venmoSurcharge/100) * 100) / 100;
+    total = total + venmoFee;
+  }
+
   const orderData = {
     date: new Date().toLocaleString(),
     name, phone, email,
@@ -4079,7 +4277,8 @@ async function submitOrder() {
     subtotal: customerTotal,
     customer_total: total,
     your_cost: baseCost,
-    your_margin: margin,
+    your_margin: margin + venmoFee,
+    payment_method: selectedPayment,
     group_order_number: settings.group_order_number || 1
   };
 
@@ -4100,15 +4299,29 @@ async function submitOrder() {
     document.getElementById('fConnection').value = '';
     document.getElementById('fConnectionOther').value = '';
 
-    // Show success
-    let msg = 'Your order is saved. Send USDC payment below, then DM the transaction hash to Boyd on WhatsApp to confirm.';
-    if (isRepeat) msg = '✅ Order saved! Note: Shipping removed — already paid on a previous order. Send USDC below and DM the TX hash to Boyd.';
-    document.getElementById('successMsg').textContent = msg;
-    document.getElementById('successTotal').textContent = 'Send ' + total.toFixed(2) + ' USDC';
-    document.getElementById('successBreakdown').textContent = isRepeat
-      ? fmt(customerTotal) + ' products + $0.00 shipping (repeat customer)'
-      : fmt(customerTotal) + ' products + ' + fmt(SHIPPING) + ' shipping';
-    document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
+    // Show success — branch on payment method
+    const shipPart = isRepeat ? '$0.00 shipping (returning customer)' : fmt(SHIPPING) + ' shipping';
+    const usdcBox = document.getElementById('usdcPayBox');
+    const venmoBox = document.getElementById('venmoPayBox');
+    if (selectedPayment === 'venmo') {
+      document.getElementById('successMsg').textContent = '✅ Order saved! Pay with Venmo below. Your total includes the ' + venmoSurcharge + '% Venmo fee. Send a payment screenshot to Boyd on WhatsApp.';
+      document.getElementById('successTotal').textContent = 'Pay ' + fmt(total);
+      document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + shipPart + ' + ' + fmt(venmoFee) + ' Venmo fee';
+      const vlink = document.getElementById('venmoPayLink');
+      vlink.href = 'venmo://paycharge?txn=pay&recipients=Boyd-Moretti&amount=' + total.toFixed(2);
+      document.getElementById('venmoAmtLabel').textContent = fmt(total);
+      if (usdcBox) usdcBox.style.display = 'none';
+      if (venmoBox) venmoBox.style.display = 'block';
+    } else {
+      document.getElementById('successMsg').textContent = isRepeat
+        ? '✅ Order saved! Note: Shipping removed — already paid on a previous order. Send USDC below and DM the TX hash to Boyd.'
+        : 'Your order is saved. Send USDC payment below, then DM the transaction hash to Boyd on WhatsApp to confirm.';
+      document.getElementById('successTotal').textContent = 'Send ' + total.toFixed(2) + ' USDC';
+      document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + shipPart;
+      document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
+      if (usdcBox) usdcBox.style.display = 'block';
+      if (venmoBox) venmoBox.style.display = 'none';
+    }
     document.getElementById('successOverlay').classList.add('show');
 
   } catch(e) {
@@ -4121,6 +4334,7 @@ async function submitOrder() {
 function closeSuccess() {
   document.getElementById('successOverlay').classList.remove('show');
   cart = {};
+  selectedPayment = 'usdc';
   updateCart();
   renderProducts();
   showView('shop');
@@ -4196,9 +4410,12 @@ async function loadAdminData() {
       if (data && data[0]) {
         settings = data[0];
         markup = settings.markup_percentage || 0;
+        venmoSurcharge = (settings.venmo_surcharge_pct != null) ? settings.venmo_surcharge_pct : 10;
         productOverrides = settings.product_overrides || {};
         const gNum = settings.group_order_number || 1;
         document.getElementById('adminGroupNum').value = gNum;
+        const vsi = document.getElementById('venmoSurchargeInput');
+        if (vsi) vsi.value = venmoSurcharge;
         document.getElementById('adminCloseDate').value = settings.close_message || '';
         document.getElementById('markupInput').value = markup;
         document.getElementById('adminSub').textContent = 'GROUP ORDER #' + gNum;
@@ -4455,6 +4672,28 @@ async function saveMarkup() {
       markup = pct;
       renderProducts();
       alert(`Markup set to ${pct}%. All prices updated!`);
+    } else throw new Error('Failed');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+function updateVenmoPreview() {
+  const pct = parseFloat(document.getElementById('venmoSurchargeInput').value) || 0;
+  document.getElementById('venmoPreview').textContent =
+    `Venmo orders add ${pct}% on top of the full total.`;
+}
+
+async function saveVenmoSurcharge() {
+  const pct = parseFloat(document.getElementById('venmoSurchargeInput').value) || 0;
+  try {
+    const res = await api('eml_settings?id=eq.1', {
+      method: 'PATCH',
+      body: JSON.stringify({venmo_surcharge_pct: pct})
+    });
+    if (res.ok) {
+      venmoSurcharge = pct;
+      alert(`Venmo surcharge set to ${pct}%.`);
     } else throw new Error('Failed');
   } catch(e) {
     alert('Error: ' + e.message);
