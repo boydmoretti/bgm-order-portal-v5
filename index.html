@@ -898,37 +898,52 @@ body{
 <div id="successOverlay">
   <div class="success-icon">✅</div>
   <div class="success-title">Order Submitted!</div>
-  <div class="success-msg" id="successMsg">Your order is saved. Send USDC payment below, then DM the transaction hash to Boyd on WhatsApp to confirm.</div>
-  <div style="background:#fef2f2;border:2px solid #dc2626;border-radius:12px;padding:14px;margin:12px 0;text-align:center;width:100%;max-width:340px;">
-    <div style="font-size:14px;color:#991b1b;font-weight:700;line-height:1.4;">⚠️ SEND USDC ON ETHEREUM (ERC-20) ONLY</div>
-    <div style="font-size:12px;color:#991b1b;font-weight:500;margin-top:6px;line-height:1.4;">Do NOT send on Polygon, BSC, Arbitrum, Solana, or any other network. Your funds will be PERMANENTLY LOST and cannot be recovered.</div>
+  <div class="success-msg" id="successMsg">Your order is saved! Now choose how you'd like to pay below.</div>
+
+  <!-- PAYMENT CHOICE (shown first) -->
+  <div id="payChoiceBox" style="width:100%;max-width:340px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Choose Your Payment Method</div>
+    <div id="payChoiceSub" style="font-size:13px;color:#8fa3bb;margin-bottom:14px;line-height:1.5;"></div>
+    <button onclick="choosePay('usdc')" style="width:100%;background:rgba(16,185,129,0.12);border:2px solid #10b981;color:#10b981;border-radius:12px;padding:16px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer;margin-bottom:12px;line-height:1.3;">✅ Pay with USDC<br><span style="font-size:12px;font-weight:500;color:#6ee7b7;">No extra fee — <span id="usdcChoiceAmt"></span></span></button>
+    <button onclick="choosePay('venmo')" style="width:100%;background:rgba(0,140,255,0.1);border:2px solid #008CFF;color:#008CFF;border-radius:12px;padding:16px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer;line-height:1.3;">💸 Pay with Venmo<br><span style="font-size:12px;font-weight:500;color:#7dd3fc;">+<span class="venmoPctLbl">10</span>% fee — <span id="venmoChoiceAmt"></span></span></button>
   </div>
-  <div id="usdcPayBox" style="width:100%;max-width:340px;">
-  <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:12px 0;text-align:center;width:100%;">
-    <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC Payment</div>
-    <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
-    <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
-    <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Network: Ethereum (ERC-20) — Send to this address:</div>
-    <div id="addrBox" style="font-family:monospace;font-size:13px;font-weight:700;background:#f1f5f9;border:2px solid #22c55e;border-radius:8px;padding:12px;margin:8px 0;word-break:break-all;color:#0f172a;letter-spacing:0.02em;line-height:1.6;"></div>
-    <button onclick="copyCryptoAddr()" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:15px;width:100%;margin-top:4px;">📋 Copy Wallet Address</button>
-  </div>
-  <div id="qrBox" style="display:none;"></div>
-  <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:8px 0;width:100%;max-width:340px;text-align:left;">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER SENDING:</div>
-    <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Screenshot or copy the <strong style="color:#fff;">Transaction Hash (TX ID)</strong> from your wallet and DM it to Boyd on WhatsApp to confirm your payment.</div>
-  </div>
-  </div>
-  <div id="venmoPayBox" style="display:none;width:100%;max-width:340px;">
-    <div style="background:#f0f7ff;border:2px solid #3b82f6;border-radius:12px;padding:18px 16px;margin:12px 0;text-align:center;">
-      <div style="font-size:13px;color:#1e40af;font-weight:600;margin-bottom:6px;">💸 Pay with Venmo</div>
-      <a id="venmoPayLink" href="#" target="_blank" style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:#008CFF;text-decoration:none;margin:8px 0;">@Boyd-Moretti 👆</a>
-      <div style="font-size:13px;color:#475569;margin-bottom:4px;">Tap above to open Venmo and pay <strong id="venmoAmtLabel" style="color:#1e40af;"></strong></div>
-      <div style="font-size:12px;color:#64748b;margin-top:8px;">Note to add: <strong>Reimbursement</strong></div>
+
+  <!-- USDC PANEL (hidden until chosen) -->
+  <div id="usdcPayBox" style="display:none;width:100%;max-width:340px;">
+    <div style="background:#fef2f2;border:2px solid #dc2626;border-radius:12px;padding:14px;margin:0 0 12px;text-align:center;">
+      <div style="font-size:14px;color:#991b1b;font-weight:700;line-height:1.4;">⚠️ SEND USDC ON ETHEREUM (ERC-20) ONLY</div>
+      <div style="font-size:12px;color:#991b1b;font-weight:500;margin-top:6px;line-height:1.4;">Do NOT send on Polygon, BSC, Arbitrum, Solana, or any other network. Your funds will be PERMANENTLY LOST and cannot be recovered.</div>
     </div>
-    <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:8px 0;text-align:left;">
+    <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:0 0 12px;text-align:center;width:100%;">
+      <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC Payment</div>
+      <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
+      <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Network: Ethereum (ERC-20) — Send to this address:</div>
+      <div id="addrBox" style="font-family:monospace;font-size:13px;font-weight:700;background:#f1f5f9;border:2px solid #22c55e;border-radius:8px;padding:12px;margin:8px 0;word-break:break-all;color:#0f172a;letter-spacing:0.02em;line-height:1.6;"></div>
+      <button onclick="copyCryptoAddr()" style="background:#166534;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:15px;width:100%;margin-top:4px;">📋 Copy Wallet Address</button>
+    </div>
+    <div id="qrBox" style="display:none;"></div>
+    <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:0 0 8px;text-align:left;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER SENDING:</div>
+      <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Screenshot or copy the <strong style="color:#fff;">Transaction Hash (TX ID)</strong> from your wallet and DM it to Boyd on WhatsApp to confirm your payment.</div>
+    </div>
+    <button onclick="backToPayChoice()" style="background:transparent;border:1px solid #334155;color:#8fa3bb;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;width:100%;">← Back to payment options</button>
+  </div>
+
+  <!-- VENMO PANEL (hidden until chosen) -->
+  <div id="venmoPayBox" style="display:none;width:100%;max-width:340px;">
+    <div style="background:#f0f7ff;border:2px solid #3b82f6;border-radius:12px;padding:18px 16px;margin:0 0 12px;text-align:center;">
+      <div style="font-size:13px;color:#1e40af;font-weight:600;margin-bottom:6px;">💸 Pay with Venmo</div>
+      <div id="venmoTotalBig" style="font-size:26px;font-weight:800;color:#1e40af;margin:6px 0;font-family:'Barlow Condensed',sans-serif;"></div>
+      <div id="venmoBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
+      <a id="venmoPayLink" href="#" target="_blank" style="display:block;background:#008CFF;color:#fff;border-radius:8px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;text-decoration:none;margin:8px 0;">Open Venmo & Pay 👆</a>
+      <div style="font-size:12px;color:#64748b;margin-top:6px;">Pays <strong>@Boyd-Moretti</strong> · Note: <strong>Reimbursement</strong></div>
+    </div>
+    <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:0 0 8px;text-align:left;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER PAYING:</div>
       <div style="font-size:13px;color:#e9d5ff;line-height:1.6;">Send a <strong style="color:#fff;">payment screenshot</strong> to Boyd on WhatsApp to confirm your order.</div>
     </div>
+    <button onclick="backToPayChoice()" style="background:transparent;border:1px solid #334155;color:#8fa3bb;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;width:100%;">← Back to payment options</button>
   </div>
   <button class="success-close" onclick="closeSuccess()">Done</button>
 </div>
@@ -998,7 +1013,7 @@ body{
     <div class="ack-card warn">
       <span class="ack-icon">⏳</span>
       <div class="ack-ct">Shipping Takes 8–10 Weeks</div>
-      <div class="ack-cb">These ship from overseas. Expect <strong>8 to 10 weeks minimum</strong> — sometimes <span class="hot">longer</span> if held at customs or if a package needs to be reshipped. This is normal. Order now for what you'll need months out.</div>
+      <div class="ack-cb">These ship from overseas. Expect <strong>8 to 10 weeks minimum</strong> — sometimes <span class="hot">longer</span> if held at customs or if a package needs to be reshipped. This is normal. Order now for what you'll need months out. Occasionally packages arrive earlier than expected — consider it a bonus, but plan for the full 8–10 weeks so you're never caught short.</div>
     </div>
 
     <div class="ack-card">
@@ -1046,7 +1061,6 @@ body{
       <div id="checkoutItems"></div>
       <div class="order-subtotal"><span>Subtotal</span><span id="coSubtotal"></span></div>
       <div class="order-subtotal"><span>Shipping & Customs (flat fee)</span><span id="coShip">$25.00</span></div>
-      <div class="order-subtotal" id="coVenmoRow" style="display:none;color:#fbbf24;"><span>Venmo Fee (+<span class="venmoPctLbl">10</span>%)</span><span id="coVenmoFee"></span></div>
       <div class="order-total-row"><span>Total Due</span><span id="coTotal"></span></div>
     </div>
     <!-- Your Info -->
@@ -1083,25 +1097,8 @@ body{
       </select>
       <input class="form-input" id="fConnectionOther" placeholder="Type name here if not listed above" style="margin-top:8px">
     </div>
-    <div style="background:#1a2a1a;border:1px solid #2d4a2d;border-radius:10px;padding:14px 16px;margin:0 0 14px;font-size:12px;color:#a8c8a8;line-height:1.6;">
-      <div style="font-weight:700;color:#6dbf6d;margin-bottom:6px;">📦 Shipping & Order Policy</div>
-      <div>✅ <strong style="color:#d0e8d0;">Free reship guaranteed</strong> if our package is seized or flagged by customs — one time per order, no questions asked.</div>
-      <div style="margin-top:5px;">⚠️ <strong style="color:#d0e8d0;">Order at your own risk.</strong> All products are for research purposes only. By submitting you acknowledge you understand and accept all risks associated with your order.</div>
-    </div>
-    <!-- Payment Method -->
-    <div class="section-card" style="border-color:#7c3aed;">
-      <div class="section-title">💳 Payment Method *</div>
-      <div style="display:flex;gap:10px;">
-        <button type="button" id="btnUsdc" onclick="selectPayment('usdc')" style="flex:1;padding:14px 8px;border-radius:10px;border:2px solid #10b981;background:rgba(16,185,129,0.15);color:#10b981;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer;line-height:1.2;">✅ USDC<br><span style="font-size:11px;font-weight:500;">No extra fee</span></button>
-        <button type="button" id="btnVenmo" onclick="selectPayment('venmo')" style="flex:1;padding:14px 8px;border-radius:10px;border:2px solid #1a2840;background:transparent;color:#8fa3bb;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;cursor:pointer;line-height:1.2;">💸 Venmo<br><span style="font-size:11px;font-weight:500;">+<span class="venmoPctLbl">10</span>% fee</span></button>
-      </div>
-      <div id="venmoFeeNote" style="display:none;margin-top:10px;background:#1a0a00;border:1px solid #f59e0b;border-radius:8px;padding:10px 12px;font-size:12px;color:#fcd34d;line-height:1.5;">⚠️ Venmo includes a <strong>+<span class="venmoPctLbl">10</span>% convenience fee</strong> for the manual crypto conversion work. The total below reflects this.</div>
-    </div>
-    <!-- USDC WARNING -->
-    <div id="usdcWarnBox" style="background:#1a0000;border:3px solid #dc2626;border-radius:12px;padding:18px 16px;margin:0 0 16px;text-align:center;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;color:#ff2222;letter-spacing:0.04em;margin-bottom:8px;">🚨 PAYMENT WARNING 🚨</div>
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#ffffff;margin-bottom:8px;">USDC — ETHEREUM (ERC-20) NETWORK ONLY</div>
-      <div style="font-size:13px;color:#fca5a5;line-height:1.6;"><strong style="color:#fff;">DO NOT</strong> send on Coinbase Base, Polygon, Solana, BSC, or any other network.<br><strong style="color:#ff4444;">Wrong network = funds permanently lost.</strong> You must select Ethereum mainnet in your wallet before sending.</div>
+    <div style="background:#0d1624;border:1px solid #7c3aed;border-radius:10px;padding:13px 16px;margin:0 0 14px;font-size:13px;color:#c4b5fd;line-height:1.5;text-align:center;">
+      💳 <strong style="color:#fff;">Submit your order first</strong> — then choose how to pay (USDC or Venmo) on the next screen.
     </div>
     <button class="submit-btn" id="submitBtn" onclick="submitOrder()">Submit Order →</button>
     <div class="research-footer">For Research Purposes Only</div>
@@ -3889,6 +3886,7 @@ let cart = {};
 let markup = 0;
 let venmoSurcharge = 10;
 let selectedPayment = 'usdc';
+let pendingOrder = null;
 let settings = {};
 let productOverrides = {};
 let activeCat = 'all';
@@ -4147,53 +4145,6 @@ function ackContinue() {
   if (!ackChecked) return;
   goToCheckout();
 }
-function selectPayment(method) {
-  selectedPayment = method;
-  const usdc = document.getElementById('btnUsdc');
-  const venmo = document.getElementById('btnVenmo');
-  const note = document.getElementById('venmoFeeNote');
-  const warn = document.getElementById('usdcWarnBox');
-  if (method === 'venmo') {
-    venmo.style.border = '2px solid #f59e0b';
-    venmo.style.background = 'rgba(245,158,11,0.15)';
-    venmo.style.color = '#fbbf24';
-    usdc.style.border = '2px solid #1a2840';
-    usdc.style.background = 'transparent';
-    usdc.style.color = '#8fa3bb';
-    note.style.display = 'block';
-    if (warn) warn.style.display = 'none';
-  } else {
-    usdc.style.border = '2px solid #10b981';
-    usdc.style.background = 'rgba(16,185,129,0.15)';
-    usdc.style.color = '#10b981';
-    venmo.style.border = '2px solid #1a2840';
-    venmo.style.background = 'transparent';
-    venmo.style.color = '#8fa3bb';
-    note.style.display = 'none';
-    if (warn) warn.style.display = 'block';
-  }
-  refreshCheckoutTotals();
-}
-function refreshCheckoutTotals() {
-  const {kits, customerTotal} = getTotals();
-  if (kits < MIN_KITS) return;
-  let total = customerTotal + SHIPPING;
-  let venmoFee = 0;
-  if (selectedPayment === 'venmo') {
-    venmoFee = Math.round(total * (venmoSurcharge/100) * 100) / 100;
-    total = total + venmoFee;
-  }
-  document.getElementById('coSubtotal').textContent = fmt(customerTotal);
-  const vRow = document.getElementById('coVenmoRow');
-  if (selectedPayment === 'venmo') {
-    vRow.style.display = 'flex';
-    document.getElementById('coVenmoFee').textContent = fmt(venmoFee);
-  } else {
-    vRow.style.display = 'none';
-  }
-  document.getElementById('coTotal').textContent = fmt(total);
-}
-
 function goToCheckout() {
   const {kits, customerTotal} = getTotals();
   if (kits < MIN_KITS) return;
@@ -4211,11 +4162,9 @@ function goToCheckout() {
   });
 
   document.getElementById('checkoutItems').innerHTML = itemsHtml;
-  // sync venmo % labels everywhere
-  document.querySelectorAll('.venmoPctLbl').forEach(el => el.textContent = venmoSurcharge);
-  // default to USDC each time checkout opens
+  document.getElementById('coSubtotal').textContent = fmt(customerTotal);
+  document.getElementById('coTotal').textContent = fmt(total);
   selectedPayment = 'usdc';
-  selectPayment('usdc');
   showView('checkout');
 }
 
@@ -4262,23 +4211,23 @@ async function submitOrder() {
   // Actually remove shipping for repeat customers
   if (isRepeat) total = customerTotal;
 
-  // Venmo surcharge — always applies if Venmo selected, baked into total
-  let venmoFee = 0;
-  if (selectedPayment === 'venmo') {
-    venmoFee = Math.round(total * (venmoSurcharge/100) * 100) / 100;
-    total = total + venmoFee;
-  }
+  // Base total = USDC total (no fee). Venmo fee computed when customer chooses.
+  const usdcTotal = total;
+  const venmoFee = Math.round(usdcTotal * (venmoSurcharge/100) * 100) / 100;
+  const venmoTotal = usdcTotal + venmoFee;
 
+  // Save order as pending payment, USDC/base total. Patched when they choose.
   const orderData = {
     date: new Date().toLocaleString(),
     name, phone, email,
     connection: finalConnection,
     items: JSON.stringify(items),
     subtotal: customerTotal,
-    customer_total: total,
+    customer_total: usdcTotal,
     your_cost: baseCost,
-    your_margin: margin + venmoFee,
-    payment_method: selectedPayment,
+    your_margin: margin,
+    venmo_fee: 0,
+    payment_method: 'pending',
     group_order_number: settings.group_order_number || 1
   };
 
@@ -4293,35 +4242,37 @@ async function submitOrder() {
       throw new Error(JSON.stringify(err));
     }
 
+    const saved = await res.json();
+    const savedId = (saved && saved[0] && saved[0].id) ? saved[0].id : null;
+
     document.getElementById('fName').value = '';
     document.getElementById('fPhone').value = '';
     document.getElementById('fEmail').value = '';
     document.getElementById('fConnection').value = '';
     document.getElementById('fConnectionOther').value = '';
 
-    // Show success — branch on payment method
+    // Stash everything the payment-choice buttons need
+    pendingOrder = {
+      id: savedId,
+      customerTotal, baseCost, margin,
+      shipping: isRepeat ? 0 : SHIPPING,
+      isRepeat,
+      usdcTotal, venmoFee, venmoTotal
+    };
+
+    // Prep choice screen
     const shipPart = isRepeat ? '$0.00 shipping (returning customer)' : fmt(SHIPPING) + ' shipping';
-    const usdcBox = document.getElementById('usdcPayBox');
-    const venmoBox = document.getElementById('venmoPayBox');
-    if (selectedPayment === 'venmo') {
-      document.getElementById('successMsg').textContent = '✅ Order saved! Pay with Venmo below. Your total includes the ' + venmoSurcharge + '% Venmo fee. Send a payment screenshot to Boyd on WhatsApp.';
-      document.getElementById('successTotal').textContent = 'Pay ' + fmt(total);
-      document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + shipPart + ' + ' + fmt(venmoFee) + ' Venmo fee';
-      const vlink = document.getElementById('venmoPayLink');
-      vlink.href = 'venmo://paycharge?txn=pay&recipients=Boyd-Moretti&amount=' + total.toFixed(2);
-      document.getElementById('venmoAmtLabel').textContent = fmt(total);
-      if (usdcBox) usdcBox.style.display = 'none';
-      if (venmoBox) venmoBox.style.display = 'block';
-    } else {
-      document.getElementById('successMsg').textContent = isRepeat
-        ? '✅ Order saved! Note: Shipping removed — already paid on a previous order. Send USDC below and DM the TX hash to Boyd.'
-        : 'Your order is saved. Send USDC payment below, then DM the transaction hash to Boyd on WhatsApp to confirm.';
-      document.getElementById('successTotal').textContent = 'Send ' + total.toFixed(2) + ' USDC';
-      document.getElementById('successBreakdown').textContent = fmt(customerTotal) + ' products + ' + shipPart;
-      document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
-      if (usdcBox) usdcBox.style.display = 'block';
-      if (venmoBox) venmoBox.style.display = 'none';
-    }
+    document.getElementById('payChoiceSub').textContent = fmt(customerTotal) + ' products + ' + shipPart + '. Choose USDC (no fee) or Venmo (+' + venmoSurcharge + '%).';
+    document.getElementById('usdcChoiceAmt').textContent = fmt(usdcTotal);
+    document.getElementById('venmoChoiceAmt').textContent = fmt(venmoTotal);
+    document.querySelectorAll('.venmoPctLbl').forEach(el => el.textContent = venmoSurcharge);
+
+    // Reset panels to choice-first state
+    document.getElementById('payChoiceBox').style.display = 'block';
+    document.getElementById('usdcPayBox').style.display = 'none';
+    document.getElementById('venmoPayBox').style.display = 'none';
+    document.getElementById('successMsg').textContent = "Your order is saved! Now choose how you'd like to pay below.";
+
     document.getElementById('successOverlay').classList.add('show');
 
   } catch(e) {
@@ -4331,10 +4282,56 @@ async function submitOrder() {
   }
 }
 
+// Customer picks payment method on the success screen
+async function choosePay(method) {
+  if (!pendingOrder) return;
+  selectedPayment = method;
+  const shipPart = pendingOrder.isRepeat ? '$0.00 shipping (returning customer)' : fmt(SHIPPING) + ' shipping';
+  document.getElementById('payChoiceBox').style.display = 'none';
+
+  if (method === 'usdc') {
+    document.getElementById('successTotal').textContent = 'Send ' + pendingOrder.usdcTotal.toFixed(2) + ' USDC';
+    document.getElementById('successBreakdown').textContent = fmt(pendingOrder.customerTotal) + ' products + ' + shipPart;
+    document.getElementById('addrBox').textContent = CRYPTO_ADDRESS;
+    document.getElementById('usdcPayBox').style.display = 'block';
+    document.getElementById('venmoPayBox').style.display = 'none';
+  } else {
+    document.getElementById('venmoTotalBig').textContent = 'Pay ' + fmt(pendingOrder.venmoTotal);
+    document.getElementById('venmoBreakdown').textContent = fmt(pendingOrder.customerTotal) + ' products + ' + shipPart + ' + ' + fmt(pendingOrder.venmoFee) + ' Venmo fee (' + venmoSurcharge + '%)';
+    document.getElementById('venmoPayLink').href = 'venmo://paycharge?txn=pay&recipients=Boyd-Moretti&amount=' + pendingOrder.venmoTotal.toFixed(2);
+    document.getElementById('usdcPayBox').style.display = 'none';
+    document.getElementById('venmoPayBox').style.display = 'block';
+  }
+
+  // Patch the saved order with the chosen method, fee, and final total
+  if (pendingOrder.id != null) {
+    try {
+      const fee = method === 'venmo' ? pendingOrder.venmoFee : 0;
+      const finalTotal = method === 'venmo' ? pendingOrder.venmoTotal : pendingOrder.usdcTotal;
+      await api('eml_orders?id=eq.' + pendingOrder.id, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          payment_method: method,
+          venmo_fee: fee,
+          customer_total: finalTotal,
+          your_margin: pendingOrder.margin + fee
+        })
+      });
+    } catch(e) {}
+  }
+}
+
+function backToPayChoice() {
+  document.getElementById('usdcPayBox').style.display = 'none';
+  document.getElementById('venmoPayBox').style.display = 'none';
+  document.getElementById('payChoiceBox').style.display = 'block';
+}
+
 function closeSuccess() {
   document.getElementById('successOverlay').classList.remove('show');
   cart = {};
   selectedPayment = 'usdc';
+  pendingOrder = null;
   updateCart();
   renderProducts();
   showView('shop');
@@ -4477,6 +4474,12 @@ function renderOrders() {
     const itemsText = items.map(it => `${it.sku} × ${it.qty} = ${fmt(it.lineTotal)}`).join(' | ');
     const margin = o.your_margin || 0;
     const cost = o.your_cost || 0;
+    const pm = o.payment_method || 'pending';
+    const vfee = o.venmo_fee || 0;
+    let pmLabel, pmColor;
+    if (pm === 'venmo') { pmLabel = '💸 VENMO (+' + fmt(vfee) + ' fee)'; pmColor = '#008CFF'; }
+    else if (pm === 'usdc') { pmLabel = '✅ USDC'; pmColor = '#10b981'; }
+    else { pmLabel = '⏳ Payment not chosen yet'; pmColor = '#f59e0b'; }
 
     return `<div class="order-card ${isRepeat ? 'repeat' : ''}">
       ${isRepeat ? '<div class="repeat-flag">⚠️ Repeat Order — Review Before Finalizing</div>' : ''}
@@ -4486,6 +4489,7 @@ function renderOrders() {
       </div>
       <div class="order-meta">${o.phone} · ${o.email} · ${o.date}</div>
       <div class="order-meta">🔗 Connection: <strong>${o.connection}</strong></div>
+      <div class="order-meta" style="color:${pmColor};font-weight:700;">${pmLabel}</div>
       <div class="order-items-text">${itemsText}</div>
       <div class="order-margin-row">
         <span class="margin-pill cost">Cost: ${fmt(cost)}</span>
@@ -4511,12 +4515,14 @@ function copyForCustomer(idx) {
     ...items.map(it => `${it.sku}  ${it.name} × ${it.qty}  ${fmt(it.lineTotal)}`),
     ``,
     `Shipping: ${fmt(SHIPPING)}`,
+    ...((order.venmo_fee && order.venmo_fee > 0) ? [`Venmo Fee: ${fmt(order.venmo_fee)}`] : []),
     `─────────────────────`,
     `TOTAL: ${fmt(order.customer_total || 0)}`,
+    `Payment: ${order.payment_method === 'venmo' ? 'Venmo' : (order.payment_method === 'usdc' ? 'USDC (ERC-20)' : 'Not chosen')}`,
     ``,
-    `Pay via USDC (Ethereum ERC-20 ONLY)`,
-    `Address: ${CRYPTO_ADDRESS}`,
-    `After sending, DM your transaction hash to Boyd`
+    ...(order.payment_method === 'venmo'
+      ? [`Pay via Venmo @Boyd-Moretti`, `Note: Reimbursement`, `After paying, send a screenshot to Boyd`]
+      : [`Pay via USDC (Ethereum ERC-20 ONLY)`, `Address: ${CRYPTO_ADDRESS}`, `After sending, DM your transaction hash to Boyd`])
   ].join('\n');
   navigator.clipboard.writeText(lines).then(() => alert('Copied for Customer!'));
 }
@@ -4551,7 +4557,9 @@ function printOrder(idx) {
     <hr>
     ${items.map(it=>`<div class="pi"><span>${it.sku} &nbsp;${it.name} &times; ${it.qty}</span><span>${fmt(it.lineTotal)}</span></div>`).join('')}
     <div class="pi"><span>Shipping</span><span>${fmt(SHIPPING)}</span></div>
+    ${(order.venmo_fee && order.venmo_fee > 0) ? `<div class="pi"><span>Venmo Fee</span><span>${fmt(order.venmo_fee)}</span></div>` : ''}
     <div class="pt"><span>TOTAL DUE</span><span>${fmt(order.customer_total||0)}</span></div>
+    <p style="margin-top:8px;font-size:13px;"><strong>Payment Method:</strong> ${order.payment_method === 'venmo' ? 'Venmo' : (order.payment_method === 'usdc' ? 'USDC (Crypto)' : 'Not chosen')}</p>
     <p class="pf">For Research Purposes Only</p>`;
   setTimeout(function(){ window.print(); }, 250);
 }
