@@ -905,7 +905,7 @@ body{
   <div id="payChoiceBox" style="width:100%;max-width:340px;">
     <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:4px;">Choose Your Payment Method</div>
     <div id="payChoiceSub" style="font-size:13px;color:#8fa3bb;margin-bottom:14px;line-height:1.5;"></div>
-    <button onclick="choosePay('usdc')" style="width:100%;background:rgba(16,185,129,0.12);border:2px solid #10b981;color:#10b981;border-radius:12px;padding:16px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer;margin-bottom:12px;line-height:1.3;">✅ Pay with USDC<br><span style="font-size:12px;font-weight:500;color:#6ee7b7;">No extra fee — <span id="usdcChoiceAmt"></span></span></button>
+    <button onclick="choosePay('usdc')" style="width:100%;background:rgba(16,185,129,0.12);border:2px solid #10b981;color:#10b981;border-radius:12px;padding:16px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer;margin-bottom:12px;line-height:1.3;">✅ Pay with USDC (Ethereum Network)<br><span style="font-size:12px;font-weight:500;color:#6ee7b7;">Ethereum Network — No fee — <span id="usdcChoiceAmt"></span></span></button>
     <button onclick="choosePay('venmo')" style="width:100%;background:rgba(0,140,255,0.1);border:2px solid #008CFF;color:#008CFF;border-radius:12px;padding:16px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer;line-height:1.3;">💸 Pay with Venmo<br><span style="font-size:12px;font-weight:500;color:#7dd3fc;">+<span class="venmoPctLbl">10</span>% fee — <span id="venmoChoiceAmt"></span></span></button>
   </div>
 
@@ -916,7 +916,7 @@ body{
       <div style="font-size:12px;color:#991b1b;font-weight:500;margin-top:6px;line-height:1.4;">Do NOT send on Polygon, BSC, Arbitrum, Solana, or any other network. Your funds will be PERMANENTLY LOST and cannot be recovered.</div>
     </div>
     <div style="background:#f0fdf4;border:2px solid #22c55e;border-radius:12px;padding:16px;margin:0 0 12px;text-align:center;width:100%;">
-      <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC Payment</div>
+      <div style="font-size:13px;color:#166534;font-weight:600;margin-bottom:4px;">💰 Send USDC (Ethereum Network)</div>
       <div id="successTotal" style="font-size:26px;font-weight:800;color:#166534;margin:6px 0;"></div>
       <div id="successBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
       <div style="font-size:12px;color:#64748b;margin-bottom:6px;font-weight:600;">Network: Ethereum (ERC-20) — Send to this address:</div>
@@ -1032,7 +1032,7 @@ body{
     <div class="ack-card pay">
       <span class="ack-icon">💳</span>
       <div class="ack-ct">Payment Options</div>
-      <div class="ack-pay-line"><span>USDC Crypto</span><span class="tag free">NO FEE ✓</span></div>
+      <div class="ack-pay-line"><span>USDC (Ethereum Network)</span><span class="tag free">NO FEE ✓</span></div>
       <div class="ack-pay-line"><span>Venmo</span><span class="tag fee">+<span id="ackVenmoPct">10</span>% FEE</span></div>
       <div class="ack-cb" style="margin-top:10px;">Crypto is preferred and free. Venmo adds a <span class="hot">convenience fee</span> because of the extra manual work and time required to convert and forward your payment.</div>
     </div>
