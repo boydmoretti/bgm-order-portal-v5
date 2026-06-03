@@ -890,6 +890,10 @@ body{
 .ack-continue{width:100%;background:linear-gradient(90deg,#c8102e,#7c3aed);color:#fff;border:none;border-radius:12px;padding:17px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:0.04em;cursor:pointer;transition:all 0.2s;opacity:0.45;pointer-events:none;}
 .ack-continue.ready{opacity:1;pointer-events:auto;box-shadow:0 6px 24px rgba(124,58,237,0.4);}
 .ack-continue.ready:active{transform:scale(0.98);}
+@keyframes venmo-warn {
+  0%,100% { opacity:1; }
+  50% { opacity:0.35; }
+}
 </style>
 </head>
 <body>
@@ -938,7 +942,8 @@ body{
       <div id="venmoTotalBig" style="font-size:26px;font-weight:800;color:#1e40af;margin:6px 0;font-family:'Barlow Condensed',sans-serif;"></div>
       <div id="venmoBreakdown" style="font-size:12px;color:#64748b;margin-bottom:10px;"></div>
       <a id="venmoPayLink" href="#" target="_blank" style="display:block;background:#008CFF;color:#fff;border-radius:8px;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;text-decoration:none;margin:8px 0;">Open Venmo & Pay 👆</a>
-      <div style="font-size:12px;color:#64748b;margin-top:6px;">Pays <strong>@Boyd-Moretti</strong> · Note: <strong>Reimbursement</strong></div>
+      <div style="font-size:12px;color:#64748b;margin-top:6px;">Pays <strong>@Boyd-Moretti</strong></div>
+      <div style="margin-top:10px;padding:10px 14px;background:#1a0000;border:2px solid #dc2626;border-radius:8px;animation:venmo-warn 1.5s ease-in-out infinite;font-size:13px;font-weight:800;color:#ff4444;line-height:1.5;text-align:center;">⚠️ Your Venmo note MUST say <span style="color:#fff;letter-spacing:1px;">REIMBURSEMENT</span>. Nothing else or your payment will be sent back. Not vitamins, not peptides, not candy. It should say <span style="color:#fff;letter-spacing:1px;">REIMBURSEMENT</span>.</div>
     </div>
     <div style="background:#1a0a2e;border:2px solid #7c3aed;border-radius:10px;padding:14px 16px;margin:0 0 8px;text-align:left;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:800;color:#a78bfa;margin-bottom:6px;">📲 AFTER PAYING:</div>
@@ -3528,8 +3533,6 @@ const SUPABASE_URL = 'https://zilrgqnqoswtmvlmzdim.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppbHJncW5xb3N3dG12bG16ZGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODI4ODAsImV4cCI6MjA4ODE1ODg4MH0.rA-2ef_hcpfWruCHzd1YeZFuKV6ylRCg1VeoR8DrVO4';
 const ADMIN_PW = 'BgM2026!';
 const MIN_KITS = 1;
-// TEMP: Alisa suspended oils+tablets through June 26th. Empty this array to re-enable: const SUSPENDED_CATS = [];
-const SUSPENDED_CATS = ['oils','tablets'];
 const SHIPPING = 25;
 
 // ============================================================
@@ -3954,10 +3957,6 @@ async function init() {
         markup = settings.markup_percentage || 0;
         venmoSurcharge = (settings.venmo_surcharge_pct != null) ? settings.venmo_surcharge_pct : 10;
         productOverrides = settings.product_overrides || {};
-        SUSPENDED_CATS = [];
-        if (settings.suspend_oils) SUSPENDED_CATS.push('oils');
-        if (settings.suspend_tablets) SUSPENDED_CATS.push('tablets');
-        if (settings.suspend_sarms) SUSPENDED_CATS.push('sarms');
         const gNum = settings.group_order_number || 1;
         const closeDate = settings.close_message || '';
         document.getElementById('headerSub').textContent = `2026 ALISA / SBF — GROUP ORDER #${gNum}`;
@@ -4031,7 +4030,7 @@ function renderProducts() {
   filtered.forEach(p => {
     const ov = productOverrides[p.sku] || {};
     const isOOS = ov.isOOS || false;
-    const isNA = ov.isNA || SUSPENDED_CATS.includes(p.cat) || false;
+    const isNA = ov.isNA || false;
     const qty = cart[p.sku] || 0;
     const cp = cPrice(p.base);
     const inCart = qty > 0;
@@ -4081,8 +4080,6 @@ function renderProducts() {
 // CART
 // ============================================================
 function changeQty(sku, delta) {
-  const sp = PRODUCTS.find(x => x.sku === sku);
-  if (delta > 0 && sp && SUSPENDED_CATS.includes(sp.cat)) return;
   const cur = cart[sku] || 0;
   const next = Math.max(0, cur + delta);
   if (next === 0) delete cart[sku]; else cart[sku] = next;
@@ -4402,39 +4399,6 @@ function checkPW() {
   }
 }
 
-
-function toggleSuspend(cat) {
-  const map = {oils:'suspendOilsToggle', tablets:'suspendTabletsToggle', sarms:'suspendSarmsToggle'};
-  const el = document.getElementById(map[cat]);
-  if (!el) return;
-  el.classList.toggle('on');
-  const isOn = el.classList.contains('on');
-  if (isOn && !SUSPENDED_CATS.includes(cat)) SUSPENDED_CATS.push(cat);
-  if (!isOn) SUSPENDED_CATS = SUSPENDED_CATS.filter(c => c !== cat);
-  renderProducts();
-}
-
-async function saveSuspension() {
-  const suspOils = document.getElementById('suspendOilsToggle').classList.contains('on');
-  const suspTabs = document.getElementById('suspendTabletsToggle').classList.contains('on');
-  const suspSarms = document.getElementById('suspendSarmsToggle').classList.contains('on');
-  try {
-    const res = await api('eml_settings?id=eq.1', {
-      method: 'PATCH',
-      body: JSON.stringify({
-        suspend_oils: suspOils,
-        suspend_tablets: suspTabs,
-        suspend_sarms: suspSarms
-      })
-    });
-    if (res.ok) {
-      alert('Suspension saved!');
-    } else throw new Error('Failed — did you run the SQL to add the new columns?');
-  } catch(e) {
-    alert('Error: ' + e.message);
-  }
-}
-
 async function forceOpen() {
   try {
     const res = await api('eml_settings?id=eq.1', {
@@ -4471,16 +4435,6 @@ async function loadAdminData() {
         markup = settings.markup_percentage || 0;
         venmoSurcharge = (settings.venmo_surcharge_pct != null) ? settings.venmo_surcharge_pct : 10;
         productOverrides = settings.product_overrides || {};
-        SUSPENDED_CATS = [];
-        if (settings.suspend_oils) SUSPENDED_CATS.push('oils');
-        if (settings.suspend_tablets) SUSPENDED_CATS.push('tablets');
-        if (settings.suspend_sarms) SUSPENDED_CATS.push('sarms');
-        const oilTog = document.getElementById('suspendOilsToggle');
-        const tabTog = document.getElementById('suspendTabletsToggle');
-        const sarTog = document.getElementById('suspendSarmsToggle');
-        if (oilTog) oilTog.classList.toggle('on', SUSPENDED_CATS.includes('oils'));
-        if (tabTog) tabTog.classList.toggle('on', SUSPENDED_CATS.includes('tablets'));
-        if (sarTog) sarTog.classList.toggle('on', SUSPENDED_CATS.includes('sarms'));
         const gNum = settings.group_order_number || 1;
         document.getElementById('adminGroupNum').value = gNum;
         const vsi = document.getElementById('venmoSurchargeInput');
