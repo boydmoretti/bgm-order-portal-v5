@@ -958,6 +958,7 @@ body{
 <div id="adminLogin" style="display:none">
   <div class="login-card">
     <div class="login-title">🔐 Admin Access</div>
+    <input class="login-input" type="email" id="pwEmailInput" placeholder="Email" onkeydown="if(event.key==='Enter')checkPW()">
     <input class="login-input" type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkPW()">
     <button class="login-btn" onclick="checkPW()">Enter</button>
     <div class="login-error" id="pwError"></div>
@@ -3531,7 +3532,6 @@ function copyCryptoAddr() {
 const CRYPTO_ADDRESS = '0x85A165217426c4262BCb6812D6936BbE305F937B';
 const SUPABASE_URL = 'https://zilrgqnqoswtmvlmzdim.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppbHJncW5xb3N3dG12bG16ZGltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI1ODI4ODAsImV4cCI6MjA4ODE1ODg4MH0.rA-2ef_hcpfWruCHzd1YeZFuKV6ylRCg1VeoR8DrVO4';
-const ADMIN_PW = 'BgM2026!';
 const MIN_KITS = 1;
 const SHIPPING = 25;
 
@@ -3944,6 +3944,28 @@ function api(path, opts={}) {
   });
 }
 
+let ADMIN_TOKEN = sessionStorage.getItem('bgm_admin_token') || null;
+function apiAuth(path, opts={}) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + ADMIN_TOKEN,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation',
+      ...opts.headers
+    },
+    ...opts
+  });
+}
+function adminSessionExpired() {
+  isAdminLoggedIn = false;
+  ADMIN_TOKEN = null;
+  sessionStorage.removeItem('bgm_admin_token');
+  openAdmin();
+  const errEl = document.getElementById('pwError');
+  if (errEl) errEl.textContent = 'Session expired — please log in again.';
+}
+
 // ============================================================
 // INIT
 // ============================================================
@@ -4232,10 +4254,13 @@ async function submitOrder() {
   let isRepeat = false;
   try {
     const curGroupNum = settings.group_order_number || 1;
-    const repRes = await api(`eml_orders?name=ilike.${encodeURIComponent(name)}&group_order_number=eq.${curGroupNum}&payment_method=neq.pending&select=id`);
+    const repRes = await api('rpc/check_repeat_v5', {
+      method: 'POST',
+      body: JSON.stringify({ p_name: name, p_group: curGroupNum })
+    });
     if (repRes.ok) {
-      const repData = await repRes.json();
-      if (repData && repData.length > 0) isRepeat = true;
+      const isRep = await repRes.json();
+      if (isRep === true) isRepeat = true;
     }
   } catch(e) {}
 
@@ -4372,6 +4397,7 @@ function closeSuccess() {
 // ADMIN
 // ============================================================
 function openAdmin() {
+  if (ADMIN_TOKEN) isAdminLoggedIn = true;
   if (!isAdminLoggedIn) {
     document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
     document.getElementById('header').style.display = 'none';
@@ -4387,29 +4413,45 @@ function openAdmin() {
   }
 }
 
-function checkPW() {
-  const pw = document.getElementById('pwInput').value.trim();
-  if (pw === ADMIN_PW) {
-    isAdminLoggedIn = true;
-    document.getElementById('adminLogin').style.display = 'none';
-    document.getElementById('header').style.display = 'none';
-    document.getElementById('bottomBar').style.display = 'none';
-    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.getElementById('view-admin').classList.add('active');
-    loadAdminData();
-  } else {
-    document.getElementById('pwError').textContent = 'Incorrect password. Try again.';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
+async function checkPW() {
+  const email = document.getElementById('pwEmailInput').value.trim();
+  const pw = document.getElementById('pwInput').value;
+  const errEl = document.getElementById('pwError');
+  errEl.textContent = '';
+  try {
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pw })
+    });
+    const data = await res.json();
+    if (res.ok && data.access_token) {
+      ADMIN_TOKEN = data.access_token;
+      sessionStorage.setItem('bgm_admin_token', ADMIN_TOKEN);
+      isAdminLoggedIn = true;
+      document.getElementById('adminLogin').style.display = 'none';
+      document.getElementById('header').style.display = 'none';
+      document.getElementById('bottomBar').style.display = 'none';
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.getElementById('view-admin').classList.add('active');
+      loadAdminData();
+    } else {
+      errEl.textContent = 'Incorrect email or password.';
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwInput').focus();
+    }
+  } catch(e) {
+    errEl.textContent = 'Login failed — check your connection.';
   }
 }
 
 async function forceOpen() {
   try {
-    const res = await api('eml_settings?id=eq.1', {
+    const res = await apiAuth('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({ is_open: true })
     });
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       setPortalToggleUI(true);
       settings.is_open = true;
@@ -4425,14 +4467,18 @@ async function forceOpen() {
 
 function adminLogout() {
   isAdminLoggedIn = false;
+  ADMIN_TOKEN = null;
+  sessionStorage.removeItem('bgm_admin_token');
   document.getElementById('pwInput').value = '';
+  document.getElementById('pwEmailInput').value = '';
   document.getElementById('pwError').textContent = '';
   showView('shop');
 }
 
 async function loadAdminData() {
   try {
-    const res = await api('eml_settings?id=eq.1');
+    const res = await apiAuth('eml_settings?id=eq.1');
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       const data = await res.json();
       if (data && data[0]) {
@@ -4470,7 +4516,8 @@ async function loadAdminData() {
 
 async function loadOrders() {
   try {
-    const res = await api('eml_orders?order=created_at.desc');
+    const res = await apiAuth('eml_orders?order=created_at.desc');
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       orders = await res.json();
       renderOrders();
@@ -4673,7 +4720,7 @@ async function saveSettings() {
 
   try {
     const isOpenNow = document.getElementById('portalToggle').classList.contains('on');
-    const res = await api('eml_settings?id=eq.1', {
+    const res = await apiAuth('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({
         is_open: isOpenNow,
@@ -4681,6 +4728,7 @@ async function saveSettings() {
         group_order_number: gNum
       })
     });
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       document.getElementById('adminSub').textContent = 'GROUP ORDER #' + gNum;
       document.getElementById('headerSub').textContent = `2026 ALISA / SBF — GROUP ORDER #${gNum}`;
@@ -4703,10 +4751,11 @@ function updateMarkupPreview() {
 async function saveMarkup() {
   const pct = parseFloat(document.getElementById('markupInput').value) || 0;
   try {
-    const res = await api('eml_settings?id=eq.1', {
+    const res = await apiAuth('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({markup_percentage: pct})
     });
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       markup = pct;
       renderProducts();
@@ -4726,10 +4775,11 @@ function updateVenmoPreview() {
 async function saveVenmoSurcharge() {
   const pct = parseFloat(document.getElementById('venmoSurchargeInput').value) || 0;
   try {
-    const res = await api('eml_settings?id=eq.1', {
+    const res = await apiAuth('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({venmo_surcharge_pct: pct})
     });
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       venmoSurcharge = pct;
       alert(`Venmo surcharge set to ${pct}%.`);
@@ -4778,10 +4828,11 @@ function toggleProdNA(sku) {
 
 async function saveProductOverrides() {
   try {
-    const res = await api('eml_settings?id=eq.1', {
+    const res = await apiAuth('eml_settings?id=eq.1', {
       method: 'PATCH',
       body: JSON.stringify({product_overrides: productOverrides})
     });
+    if (res.status === 401) { adminSessionExpired(); return; }
     if (res.ok) {
       renderProducts();
       alert('Product status saved!');
