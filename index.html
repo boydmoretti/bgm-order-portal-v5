@@ -4272,25 +4272,15 @@ async function submitOrder() {
   const venmoFee = Math.round(usdcTotal * (venmoSurcharge/100) * 100) / 100;
   const venmoTotal = usdcTotal + venmoFee;
 
-  // Save order as pending payment, USDC/base total. Patched when they choose.
-  const orderData = {
-    date: new Date().toLocaleString(),
-    name, phone, email,
-    connection: finalConnection,
-    items: JSON.stringify(items),
-    subtotal: customerTotal,
-    customer_total: usdcTotal,
-    your_cost: baseCost,
-    your_margin: margin,
-    venmo_fee: 0,
-    payment_method: 'pending',
-    group_order_number: settings.group_order_number || 1
-  };
-
   try {
-    const res = await api('eml_orders', {
+    const res = await api('rpc/submit_order_v5', {
       method: 'POST',
-      body: JSON.stringify(orderData)
+      body: JSON.stringify({
+        p_date: new Date().toLocaleString(),
+        p_name: name, p_phone: phone, p_email: email,
+        p_connection: finalConnection,
+        p_items: items
+      })
     });
 
     if (!res.ok) {
@@ -4298,8 +4288,7 @@ async function submitOrder() {
       throw new Error(JSON.stringify(err));
     }
 
-    const saved = await res.json();
-    const savedId = (saved && saved[0] && saved[0].id) ? saved[0].id : null;
+    const savedId = await res.json();
 
     document.getElementById('fName').value = '';
     document.getElementById('fPhone').value = '';
