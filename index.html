@@ -466,7 +466,8 @@ function browseHtml() {
 }
 
 function ackHtml() {
-  const fee = S.batch ? Number(S.batch.fee_amount || 0) : 0;
+  const shipFee = S.batch ? Number(S.batch.shipping_fee || 0) : 0;
+  const adminFee = S.batch ? Number(S.batch.admin_fee || 0) : 0;
   return `
     ${plateHtml()}
     <div class="wrap flow-page">
@@ -489,7 +490,10 @@ function ackHtml() {
         <div class="warn-box" style="margin-top:10px">⚠ If you send on the wrong network, your funds could be lost. Always double-check it's USDC on the Ethereum network, sent to Boyd's wallet address.</div>
       </div>
 
-      ${fee > 0 ? `<div class="card"><h3>Shipping &amp; Admin Fee</h3><p>A flat <b style="color:var(--ink)">${money(fee)}</b> is added to your order.</p></div>` : ''}
+      ${(shipFee > 0 || adminFee > 0) ? `<div class="card"><h3>Shipping &amp; Admin Fee</h3>
+        ${shipFee > 0 ? `<div class="pay-line"><span>Shipping</span><span>${money(shipFee)}</span></div>` : ''}
+        ${adminFee > 0 ? `<div class="pay-line"><span>Admin Fee</span><span>${money(adminFee)}</span></div>` : ''}
+      </div>` : ''}
 
       <div class="card risk">
         <h3>For Research Purposes Only</h3>
@@ -506,7 +510,8 @@ function ackHtml() {
 
 function checkoutHtml() {
   const sub = cartSubtotalFromPending();
-  const fee = S.batch ? Number(S.batch.fee_amount || 0) : 0;
+  const shipFee = S.batch ? Number(S.batch.shipping_fee || 0) : 0;
+  const adminFee = S.batch ? Number(S.batch.admin_fee || 0) : 0;
   const items = S.products.filter(p => S.cart[p.id] > 0);
   return `
     ${plateHtml()}
@@ -516,8 +521,9 @@ function checkoutHtml() {
       <div class="card">
         <h3>Summary</h3>
         ${items.map(p => `<div class="summary-line"><span class="n">${esc(p.name)}${p.spec ? ' (' + esc(p.spec) + ')' : ''} × ${S.cart[p.id]}</span><span class="v">${money(p.price * S.cart[p.id])}</span></div>`).join('')}
-        <div class="summary-line"><span class="n">Shipping &amp; Admin Fee</span><span class="v">${money(fee)}</span></div>
-        <div class="summary-line" style="border-top:1px solid var(--border-soft);margin-top:6px;padding-top:10px;font-weight:700"><span class="n" style="color:var(--ink)">Estimated Total</span><span class="v" style="color:var(--accent);font-size:16px">${money(sub + fee)}</span></div>
+        <div class="summary-line"><span class="n">Shipping</span><span class="v">${money(shipFee)}</span></div>
+        <div class="summary-line"><span class="n">Admin Fee</span><span class="v">${money(adminFee)}</span></div>
+        <div class="summary-line" style="border-top:1px solid var(--border-soft);margin-top:6px;padding-top:10px;font-weight:700"><span class="n" style="color:var(--ink)">Estimated Total</span><span class="v" style="color:var(--accent);font-size:16px">${money(sub + shipFee + adminFee)}</span></div>
       </div>
 
       <div class="card">
@@ -618,7 +624,9 @@ function contactInfoValid() {
 }
 function actionbarHtml() {
   const sub = cartSubtotal();
-  const fee = S.batch ? Number(S.batch.fee_amount || 0) : 0;
+  const shipFee = S.batch ? Number(S.batch.shipping_fee || 0) : 0;
+  const adminFee = S.batch ? Number(S.batch.admin_fee || 0) : 0;
+  const fee = shipFee + adminFee;
   if (S.step === 'browse') {
     return `<div class="actionbar"><div class="actionbar-inner">
       <div class="ledger-line"><span>Subtotal</span><span class="amt">${money(sub)}</span></div>
@@ -776,7 +784,7 @@ async function selectAdminBatch(id) {
 async function createNewBatch() {
   const label = prompt('Batch / flyer label for this new round:');
   if (!label) return;
-  const res = await apiAuth('syn_batches', { method: 'POST', body: JSON.stringify({ label, status: 'closed', markup_percent: 0, fee_amount: 0 }) });
+  const res = await apiAuth('syn_batches', { method: 'POST', body: JSON.stringify({ label, status: 'closed', markup_percent: 0, shipping_fee: 0, admin_fee: 0 }) });
   if (res.status === 401) { adminSessionExpired(); return; }
   const data = await res.json();
   await loadAdminData();
@@ -928,10 +936,10 @@ async function setFeeWaived(id, waived) {
   const o = S.adminOrders.find(x => x.id === id);
   const b = currentAdminBatch();
   if (!o || !b) return;
-  const feeAmount = Number(b.fee_amount) || 0;
-  const newFeeCharged = waived ? 0 : feeAmount;
-  const newTotalDue = Number(o.total_due) - Number(o.fee_charged) + newFeeCharged;
-  const res = await apiAuth(`syn_orders?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ fee_waived: waived, fee_charged: newFeeCharged, total_due: newTotalDue }) });
+  const newShipCharged = waived ? 0 : (Number(b.shipping_fee) || 0);
+  const newAdminCharged = waived ? 0 : (Number(b.admin_fee) || 0);
+  const newTotalDue = Number(o.total_due) - Number(o.shipping_charged) - Number(o.admin_fee_charged) + newShipCharged + newAdminCharged;
+  const res = await apiAuth(`syn_orders?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ fee_waived: waived, shipping_charged: newShipCharged, admin_fee_charged: newAdminCharged, total_due: newTotalDue }) });
   if (res.status === 401) { adminSessionExpired(); return; }
   await loadBatchDetail();
   render();
@@ -952,7 +960,8 @@ function printPackingSlip(orderId) {
       <thead><tr><th style="text-align:left">Item</th><th style="text-align:right;padding-left:36px">Qty</th><th style="text-align:right;padding-left:36px">Each</th><th style="text-align:right;padding-left:36px">Total</th></tr></thead>
       <tbody>${items}</tbody>
     </table>
-    <p style="margin-top:10px">Shipping &amp; Admin Fee: $${Number(order.fee_charged).toFixed(2)}${order.fee_waived ? ' (waived)' : ''}</p>
+    <p style="margin-top:10px">Shipping: $${Number(order.shipping_charged).toFixed(2)}${order.fee_waived ? ' (waived)' : ''}</p>
+    <p>Admin Fee: $${Number(order.admin_fee_charged).toFixed(2)}${order.fee_waived ? ' (waived)' : ''}</p>
     ${venmoFee > 0 ? `<p>Venmo Convenience Fee (10%): $${venmoFee.toFixed(2)}</p>` : ''}
     <p style="font-size:16px"><b>Total Paid: $${grandTotal.toFixed(2)}</b></p>`;
   document.getElementById('printSlip').innerHTML = html;
@@ -1049,10 +1058,16 @@ function adminBatchTab(b) {
     </div>
     <div class="panel">
       <h2>Shipping &amp; Admin Fee</h2>
+      <p style="font-size:12.5px;color:var(--ink-faint);margin:0 0 8px">Shown to customers as two separate line items — these can move independently from buy to buy, so they're priced separately, not as one lump fee.</p>
       <div class="field-row">
-        <label>Flat fee, per order (charged on every order — waive individually per repeat order in the Orders tab)</label>
-        <input type="number" value="${b.fee_amount}" onblur="saveBatchField('fee_amount', Number(this.value)||0)" />
+        <label>Shipping, per order</label>
+        <input type="number" value="${b.shipping_fee}" onblur="saveBatchField('shipping_fee', Number(this.value)||0)" />
       </div>
+      <div class="field-row">
+        <label>Admin Fee, per order</label>
+        <input type="number" value="${b.admin_fee}" onblur="saveBatchField('admin_fee', Number(this.value)||0)" />
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-faint);margin:8px 0 0">Both are charged on every order — waive them together per repeat order in the Orders tab.</p>
     </div>
     <div class="panel">
       <h2>This Batch — Info Bullets</h2>
@@ -1111,7 +1126,8 @@ function adminOrdersTab(b) {
           </summary>
           <div class="body">
             ${(o.items || []).map(i => `<div class="line"><span>${esc(i.name)}${i.spec ? ' (' + esc(i.spec) + ')' : ''} × ${i.qty}</span><span class="v">${money(i.unit_price * i.qty)}</span></div>`).join('')}
-            <div class="line"><span>Shipping &amp; Admin Fee</span><span class="v">${money(o.fee_charged)}${o.fee_waived ? ' (waived)' : ''}</span></div>
+            <div class="line"><span>Shipping</span><span class="v">${money(o.shipping_charged)}${o.fee_waived ? ' (waived)' : ''}</span></div>
+            <div class="line"><span>Admin Fee</span><span class="v">${money(o.admin_fee_charged)}${o.fee_waived ? ' (waived)' : ''}</span></div>
             ${venmoFee > 0 ? `<div class="line"><span>Venmo Convenience Fee (10%)</span><span class="v">${money(venmoFee)}</span></div>` : ''}
             <div class="line total"><span>Customer paid</span><span class="v">${money(grandTotal)}</span></div>
             <div class="line"><span>Your cost</span><span class="v">${money(o.cost_total)}</span></div>
