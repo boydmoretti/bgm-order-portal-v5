@@ -582,7 +582,6 @@ function paymentHtml() {
         <div class="sub">No fee — send ${money(total)}</div>
         <div class="warn-box">⚠ ETHEREUM (ERC-20) ONLY. Sending on any other network results in permanent loss of funds.</div>
         <div class="wallet-row"><code id="walletAddr">${CRYPTO_ADDRESS}</code><button class="copy-btn" onclick="copyWallet()">Copy Address</button></div>
-        <div class="after-pay-note">📲 After sending, take a screenshot of your wallet's confirmation and send it to Boyd.</div>
       </div>` : ''}
 
       ${S.payChoice === 'venmo' ? `
@@ -592,7 +591,6 @@ function paymentHtml() {
         <div class="warn-box">⚠ The "What's this for?" note will auto-fill with "Reimbursement" — leave it exactly as-is. Writing anything else (or changing it) can get the payment flagged and sent back by Venmo.</div>
         <a class="venmo-link-btn" href="venmo://paycharge?txn=pay&amp;recipients=Boyd-Moretti&amp;amount=${venmoTotal.toFixed(2)}&amp;note=Reimbursement">Open Venmo &amp; Pay</a>
         <div class="wallet-row" style="margin-top:10px"><code>${VENMO_HANDLE}</code><button class="copy-btn" onclick="copyVenmo()">Copy Handle</button></div>
-        <div class="after-pay-note">📲 After paying, send a payment screenshot to Boyd to confirm your order.</div>
       </div>` : ''}
 
       <div class="warn-box" style="margin-top:16px;background:var(--good-bg);border-color:var(--good);color:var(--good)">✅ Order Complete — everything's done except payment. You can close this window once you've copied the wallet address (or Venmo handle).</div>
