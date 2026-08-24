@@ -217,6 +217,7 @@
 
   #printSlip { display: none; }
   @media print {
+    html, body { background: #fff !important; }
     body > *:not(#printSlip) { display: none !important; }
     #printSlip { display: block !important; position: static; width: 100%; padding: 20px; margin: 0; color: #000; background: #fff; }
   }
