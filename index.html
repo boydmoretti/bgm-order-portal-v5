@@ -556,7 +556,7 @@ function cartSubtotalFromPending() { return cartSubtotal(); }
 function paymentHtml() {
   const o = S.pendingOrder || {};
   const total = Number(o.total_due || 0);
-  const venmoTotal = Math.round(total * 1.10 * 100) / 100;
+  const venmoTotal = Math.round(total * 1.10);
   return `
     ${plateHtml()}
     <div class="wrap flow-page">
@@ -917,7 +917,7 @@ async function moveProduct(id, direction) {
 async function setOrderPaymentMethod(id, method) {
   const o = S.adminOrders.find(x => x.id === id);
   if (!o) return;
-  const fee = method === 'venmo' ? Math.round(Number(o.total_due) * 10) / 100 : 0;
+  const fee = method === 'venmo' ? Math.round(Number(o.total_due) * 1.10) - Number(o.total_due) : 0;
   const res = await apiAuth(`syn_orders?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ payment_method: method, venmo_fee: fee }) });
   if (res.status === 401) { adminSessionExpired(); return; }
   await loadBatchDetail();
